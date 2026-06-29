@@ -1,86 +1,66 @@
 async function loadHome(){
 
+  const user = JSON.parse(localStorage.getItem("user"));
 
-const user =
-JSON.parse(
-localStorage.getItem("user")
-);
+  if(!user) return;
+
+  // =========================
+  // UI basic info
+  // =========================
+  document.getElementById("employeeName").innerHTML = user.employee_id;
+  document.getElementById("branchName").innerHTML = user.branch_id;
 
 
+  // =========================
+  // Dashboard stats
+  // =========================
+  const dash = await apiGet({
+    action: "getDashboard",
+    branch: user.branch_id
+  });
 
-if(!user){
+  if(dash.success){
+    document.getElementById("present").innerHTML = dash.data.present;
+    document.getElementById("late").innerHTML = dash.data.late;
+  }
 
-return;
+
+  // =========================
+  // TODAY RECORD
+  // =========================
+  const today = await apiGet({
+    action: "getTodayAttendance",
+    employee_id: user.employee_id
+  });
+
+
+  if(today.success && today.exists){
+
+    const record = today.record;
+
+    document.getElementById("checkIn").innerHTML = record.checkIn || "--:--";
+    document.getElementById("checkOut").innerHTML = record.checkOut || "--:--";
+
+    if(record.checkOut){
+      document.getElementById("statusText").innerHTML = "Completed";
+    }else{
+      document.getElementById("statusText").innerHTML = "Working";
+    }
+
+  }else{
+
+    document.getElementById("statusText").innerHTML = "Not Started";
+
+  }
 
 }
 
 
-
-// 显示员工资料
-
-document
-.getElementById("employeeName")
-.innerHTML =
-user.employee_id;
-
-
-
-document
-.getElementById("branchName")
-.innerHTML =
-user.branch_id;
-
-
-
-
-
-// 调用 GAS
-
-const result =
-await apiGet({
-
-action:
-"getDashboard",
-
-
-branch:
-user.branch_id
-
-
+// =========================
+// AUTO REFRESH WHEN RETURN FROM SCAN
+// =========================
+window.addEventListener("focus", () => {
+  loadHome();
 });
-
-
-
-
-
-console.log(result);
-
-
-
-
-if(result.success){
-
-
-
-document
-.getElementById("present")
-.innerHTML =
-result.data.present;
-
-
-
-document
-.getElementById("late")
-.innerHTML =
-result.data.late;
-
-
-
-}
-
-
-}
-
-
 
 loadHome();
