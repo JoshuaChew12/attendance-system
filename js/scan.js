@@ -1,271 +1,285 @@
-let scannedBranch="";
+let scannedBranch = "";
+let scanner = null;
+let isProcessing = false;
 
 
+// =========================
+// QR SUCCESS CALLBACK
+// =========================
+function qrSuccess(decodedText) {
 
-// QR 成功
+  if (isProcessing) return;
 
-function qrSuccess(decodedText){
+  scannedBranch = decodedText;
 
+  document.getElementById("scanStatus").innerHTML =
+    "Branch detected: " + decodedText;
 
-scannedBranch =
-decodedText;
-
-
-
-document
-.getElementById("scanStatus")
-.innerHTML =
-"Branch : "+decodedText;
-
-
-
+  // 自动开始打卡流程
+  autoAttendance();
 }
 
 
+// =========================
+// START SCANNER
+// =========================
+function startScanner() {
 
+  scanner = new Html5QrcodeScanner(
+    "reader",
+    {
+      fps: 10,
+      qrbox: 250
+    }
+  );
 
-// QR Scanner
-
-
-function startScanner(){
-
-
-
-const scanner =
-new Html5QrcodeScanner(
-
-"reader",
-
-{
-
-fps:10,
-
-qrbox:250
-
+  scanner.render(qrSuccess);
 }
-
-
-);
-
-
-
-scanner.render(
-qrSuccess
-);
-
-
-
-}
-
-
 
 startScanner();
 
 
+// =========================
+// GPS LOCATION
+// =========================
+function getLocation() {
 
+  return new Promise((resolve, reject) => {
 
+    if (!navigator.geolocation) {
+      reject(new Error("GPS not supported"));
+      return;
+    }
 
-// GPS
+    navigator.geolocation.getCurrentPosition(
 
+      (position) => {
 
-function getLocation(){
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
 
+      },
 
-return new Promise(
-(resolve,reject)=>{
+      (error) => {
+        reject(new Error("GPS permission denied"));
+      },
 
+      {
+        enableHighAccuracy: true,
+        timeout: 10000
+      }
 
-if(!navigator.geolocation){
+    );
 
-
-reject(
-"GPS not supported"
-);
-
-
-return;
-
-
-}
-
-
-
-
-navigator.geolocation.getCurrentPosition(
-
-(position)=>{
-
-
-resolve({
-
-lat:
-position.coords.latitude,
-
-
-lng:
-position.coords.longitude
-
-
-});
-
-
-},
-
-
-
-(error)=>{
-
-
-reject(
-"GPS Permission Denied"
-);
-
+  });
 
 }
 
 
-);
+// =========================
+// AUTO ATTENDANCE CONTROLLER
+// =========================
+async function autoAttendance() {
 
+  try {
 
-});
+    if (isProcessing) return;
+    isProcessing = true;
 
+    const user = JSON.parse(localStorage.getItem("user"));
 
-}
+    if (!user) {
+      throw new Error("User not found");
+    }
 
+    document.getElementById("scanStatus").innerHTML =
+      "Checking attendance...";
 
+    // 1. check today status from backend
+    const status = await apiGet({
+      action: "getTodayAttendance",
+      employee_id: user.employee_id
+    });
 
+    // 2. IF already checked in → CHECK OUT
+    if (status.success && status.exists) {
 
+      await autoCheckOut(user);
 
-// CHECK IN
+    } 
+    // 3. ELSE → CHECK IN
+    else {
 
+      if (!scannedBranch) {
+        throw new Error("QR not detected");
+      }
 
-async function checkIn(){
+      await autoCheckIn(user);
 
+    }
 
-try{
+  } catch (error) {
 
+    showError(error.message);
 
-const user =
-JSON.parse(
-localStorage.getItem("user")
-);
-
-
-
-if(!scannedBranch){
-
-
-throw new Error(
-"Please scan QR first"
-);
-
-
-}
-
-
-
-
-
-const gps =
-await getLocation();
-
-
-
-
-
-const result =
-await apiPost({
-
-
-action:"checkIn",
-
-
-employee_id:
-user.employee_id,
-
-
-branch_id:
-scannedBranch,
-
-
-lat:
-gps.lat,
-
-
-lng:
-gps.lng
-
-
-});
-
-
-
-
-document
-.getElementById("scanStatus")
-.innerHTML =
-result.message;
-
-
-
-
-}
-
-catch(error){
-
-
-document
-.getElementById("scanStatus")
-.innerHTML =
-error;
-
+  }
 
 }
 
 
+// =========================
+// AUTO CHECK IN
+// =========================
+async function autoCheckIn(user) {
+
+  try {
+
+    document.getElementById("scanStatus").innerHTML =
+      "Getting location...";
+
+    const gps = await getLocation();
+
+    document.getElementById("scanStatus").innerHTML =
+      "Submitting check-in...";
+
+    const result = await apiPost({
+      action: "checkIn",
+      employee_id: user.employee_id,
+      branch_id: scannedBranch,
+      lat: gps.lat,
+      lng: gps.lng
+    });
+
+    if (result.success) {
+
+      successUI("Check In Successful");
+
+      stopScanner();
+
+      refreshDashboard();
+
+    } else {
+
+      showError(result.message);
+
+    }
+
+  } catch (error) {
+
+    showError(error.message);
+
+  }
+
 }
 
 
+// =========================
+// AUTO CHECK OUT
+// =========================
+async function autoCheckOut(user) {
+
+  try {
+
+    document.getElementById("scanStatus").innerHTML =
+      "Processing check-out...";
+
+    const result = await apiPost({
+      action: "checkOut",
+      employee_id: user.employee_id
+    });
+
+    if (result.success) {
+
+      let text =
+        "Check Out Successful\n" +
+        "Work Hours: " +
+        result.data.workHours +
+        " hrs";
+
+      successUI(text);
+
+      stopScanner();
+
+      refreshDashboard();
+
+    } else {
+
+      showError(result.message);
+
+    }
+
+  } catch (error) {
+
+    showError(error.message);
+
+  }
+
+}
 
 
+// =========================
+// STOP CAMERA
+// =========================
+function stopScanner() {
+
+  try {
+
+    if (scanner) {
+      scanner.clear();
+    }
+
+  } catch (e) {
+    console.log(e);
+  }
+
+}
 
 
+// =========================
+// UI HELPERS
+// =========================
+function successUI(message) {
 
-// CHECK OUT
+  document.getElementById("statusIcon").innerHTML = "✅";
 
+  document.getElementById("scanStatus").innerHTML = message;
 
-async function checkOut(){
+  document.getElementById("scanTime").innerHTML =
+    new Date().toLocaleTimeString();
 
+  isProcessing = false;
 
-
-const user =
-JSON.parse(
-localStorage.getItem("user")
-);
-
-
-
-const result =
-await apiPost({
+}
 
 
-action:"checkOut",
+function showError(message) {
+
+  document.getElementById("statusIcon").innerHTML = "❌";
+
+  document.getElementById("scanStatus").innerHTML = message;
+
+  isProcessing = false;
+
+}
 
 
-employee_id:
-user.employee_id
+// =========================
+// REFRESH DASHBOARD FLAG
+// =========================
+function refreshDashboard() {
+
+  localStorage.setItem("refreshDashboard", Date.now());
+
+}
 
 
+// =========================
+// RESTART SCANNER
+// =========================
+function restartScanner() {
 
-});
-
-
-
-
-document
-.getElementById("scanStatus")
-.innerHTML =
-result.message;
-
+  location.reload();
 
 }
