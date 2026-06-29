@@ -1,3 +1,86 @@
+let scannedBranch = "";
+
+function qrSuccess(decodedText){
+
+
+scannedBranch =
+decodedText;
+
+
+
+document
+.getElementById("status")
+.innerHTML =
+"Branch: "+decodedText;
+
+
+}
+
+
+function getLocation(){
+
+
+return new Promise(
+(resolve,reject)=>{
+
+
+if(!navigator.geolocation){
+
+
+reject(
+new Error("GPS not supported")
+);
+
+
+return;
+
+
+}
+
+
+
+navigator.geolocation.getCurrentPosition(
+
+(position)=>{
+
+
+resolve({
+
+lat:
+position.coords.latitude,
+
+lng:
+position.coords.longitude
+
+
+});
+
+
+},
+
+
+(error)=>{
+
+
+reject(
+new Error(
+"GPS permission denied"
+)
+);
+
+
+}
+
+);
+
+
+
+});
+
+
+}
+
+
 async function checkIn(){
 
 
@@ -8,6 +91,18 @@ const user =
 JSON.parse(
 localStorage.getItem("user")
 );
+
+
+
+if(!scannedBranch){
+
+
+throw new Error(
+"Please scan QR Code first"
+);
+
+
+}
 
 
 
@@ -26,7 +121,7 @@ user.employee_id,
 
 
 branch_id:
-user.branch_id,
+scannedBranch,
 
 
 lat:
@@ -58,7 +153,6 @@ error.message;
 
 
 }
-
 
 
 }
@@ -112,68 +206,6 @@ error.message;
 
 
 }
-
-
-
-
-function getLocation(){
-
-
-return new Promise(
-(resolve,reject)=>{
-
-
-if(!navigator.geolocation){
-
-
-reject(
-"GPS not supported"
-);
-
-
-}
-
-
-
-navigator.geolocation.getCurrentPosition(
-
-(position)=>{
-
-
-resolve({
-
-lat:
-position.coords.latitude,
-
-lng:
-position.coords.longitude
-
-
-});
-
-
-},
-
-
-(error)=>{
-
-
-reject(
-"GPS permission denied"
-);
-
-
-}
-
-);
-
-
-
-});
-
-
-}
-
 
 
 
