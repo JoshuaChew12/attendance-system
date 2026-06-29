@@ -7,19 +7,28 @@ QR Attendance
 
 
 
-<div id="reader">
+<div id="reader"></div>
+
+
+
+<div class="scan-status">
+
+
+<div id="statusIcon">
+
+📷
 
 </div>
 
 
-
-
-<div class="scan-result">
-
-
-<p id="scanStatus">
+<h3 id="scanStatus">
 
 Please scan branch QR
+
+</h3>
+
+
+<p id="scanTime">
 
 </p>
 
@@ -27,22 +36,11 @@ Please scan branch QR
 </div>
 
 
+<button onclick="restartScanner()">
 
-
-<button onclick="checkIn()">
-
-CHECK IN
+Scan Again
 
 </button>
-
-
-
-<button onclick="checkOut()">
-
-CHECK OUT
-
-</button>
-
 
 
 </div>
