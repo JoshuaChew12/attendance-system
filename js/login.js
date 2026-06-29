@@ -1,16 +1,17 @@
 async function login(){
 
+try{
+
 
 const username =
-document
-.getElementById("username")
-.value;
+document.getElementById("username").value;
 
 
 const password =
-document
-.getElementById("password")
-.value;
+document.getElementById("password").value;
+
+
+console.log(username,password);
 
 
 
@@ -19,12 +20,14 @@ await apiPost({
 
 action:"login",
 
-username,
+username:username,
 
-password
-
+password:password
 
 });
+
+
+console.log(result);
 
 
 
@@ -37,23 +40,29 @@ JSON.stringify(result.user)
 );
 
 
-
-window.location.href=
-"dashboard.html";
-
+window.location.href="dashboard.html";
 
 
 }else{
 
 
-document
-.getElementById("msg")
-.innerHTML=
+document.getElementById("msg").innerHTML=
 result.message;
 
 
 }
 
 
+
+}catch(error){
+
+console.error(error);
+
+
+document.getElementById("msg").innerHTML=
+error.message;
+
+
+}
 
 }
