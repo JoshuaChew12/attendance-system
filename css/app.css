@@ -381,3 +381,37 @@ font-size:18px;
 
 
 }
+
+.scan-status{
+
+
+margin-top:20px;
+
+
+background:white;
+
+
+padding:20px;
+
+
+border-radius:20px;
+
+
+text-align:center;
+
+
+box-shadow:
+0 5px 15px rgba(0,0,0,.1);
+
+
+}
+
+
+
+#statusIcon{
+
+
+font-size:50px;
+
+
+}
