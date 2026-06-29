@@ -1,8 +1,5 @@
 async function login(){
 
-try{
-
-
 const username =
 document.getElementById("username").value;
 
@@ -11,8 +8,11 @@ const password =
 document.getElementById("password").value;
 
 
-console.log(username,password);
-
+console.log(
+"send:",
+username,
+password
+);
 
 
 const result =
@@ -27,7 +27,10 @@ password:password
 });
 
 
-console.log(result);
+console.log(
+"response:",
+result
+);
 
 
 
@@ -40,7 +43,8 @@ JSON.stringify(result.user)
 );
 
 
-window.location.href="dashboard.html";
+window.location.href=
+"dashboard.html";
 
 
 }else{
@@ -48,19 +52,6 @@ window.location.href="dashboard.html";
 
 document.getElementById("msg").innerHTML=
 result.message;
-
-
-}
-
-
-
-}catch(error){
-
-console.error(error);
-
-
-document.getElementById("msg").innerHTML=
-error.message;
 
 
 }
