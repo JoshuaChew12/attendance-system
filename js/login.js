@@ -44,7 +44,7 @@ JSON.stringify(result.user)
 
 
 window.location.href=
-"dashboard.html";
+"app.html";
 
 
 }else{
