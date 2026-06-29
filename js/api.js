@@ -1,19 +1,19 @@
 async function apiPost(data){
 
-const response =
-await fetch(API_URL,{
-method:"POST",
+  const formData = new URLSearchParams();
 
-body:
-JSON.stringify(data)
+  for(let key in data){
+    formData.append(key, data[key]);
+  }
 
-});
+  const response = await fetch(API_URL, {
+    method: "POST",
+    body: formData
+  });
 
-
-return await response.json();
+  return await response.json();
 
 }
-
 
 
 async function apiGet(params){
