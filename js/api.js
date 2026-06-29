@@ -18,19 +18,21 @@ async function apiPost(data){
 
 async function apiGet(params){
 
+  const query = new URLSearchParams(params);
 
-const query =
-new URLSearchParams(params);
+  const url = API_URL + "?" + query;
 
+  console.log("FETCH URL:", url);
 
+  const response = await fetch(url, {
+    method: "GET",
+    redirect: "follow"
+  });
 
-const response =
-await fetch(
-API_URL+"?"+query
-);
+  const text = await response.text();
 
+  console.log("RAW RESPONSE:", text);
 
-return await response.json();
-
+  return JSON.parse(text);
 
 }
