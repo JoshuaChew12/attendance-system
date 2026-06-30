@@ -1,289 +1,384 @@
-let scannedBranch = "";
 let scanner = null;
+let scannedBranch = "";
 let isProcessing = false;
+// =====================================================
+// START CAMERA
+// =====================================================
+function startScanner(){
 
-
-// =========================
-// QR SUCCESS CALLBACK
-// =========================
-function qrSuccess(decodedText) {
-
-  if (isProcessing) return;
-
-  scannedBranch = decodedText;
-
-  document.getElementById("scanStatus").innerHTML =
-    "Branch detected: " + decodedText;
-
-  // 自动开始打卡流程
-  autoAttendance();
+scanner =
+new Html5QrcodeScanner(
+"reader",
+{
+fps:10,
+qrbox:250
 }
 
+);
 
-// =========================
-// START SCANNER
-// =========================
-function startScanner() {
-
-  scanner = new Html5QrcodeScanner(
-    "reader",
-    {
-      fps: 10,
-      qrbox: 250
-    }
-  );
-
-  scanner.render(qrSuccess);
-}
-
-startScanner();
-
-
-// =========================
-// GPS LOCATION
-// =========================
-function getLocation() {
-
-  return new Promise((resolve, reject) => {
-
-    if (!navigator.geolocation) {
-      reject(new Error("GPS not supported"));
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-
-      (position) => {
-
-        resolve({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        });
-
-      },
-
-      (error) => {
-        reject(new Error("GPS permission denied"));
-      },
-
-      {
-        enableHighAccuracy: true,
-        timeout: 10000
-      }
-
-    );
-
-  });
+scanner.render(
+qrSuccess
+);
 
 }
 
+// =====================================================
+// QR SUCCESS
+// =====================================================
+function qrSuccess(decodedText){
 
-// =========================
-// AUTO ATTENDANCE CONTROLLER
-// =========================
-async function autoAttendance() {
+if(isProcessing)
+return;
 
-  try {
+isProcessing=true;
 
-    if (isProcessing) return;
-    isProcessing = true;
+scannedBranch=decodedText;
 
-    const user = JSON.parse(localStorage.getItem("user"));
+// STOP CAMERA FIRST
 
-    if (!user) {
-      throw new Error("User not found");
-    }
+stopScanner();
 
-    document.getElementById("scanStatus").innerHTML =
-      "Checking attendance...";
+// HIDE CAMERA
 
-    // 1. check today status from backend
-    const status = await apiGet({
-      action: "getTodayAttendance",
-      employee_id: user.employee_id
-    });
+document.getElementById(
+"cameraPage"
+).style.display="none";
 
-    // 2. IF already checked in → CHECK OUT
-    if (status.success && status.exists) {
+// SHOW RESULT
 
-      await autoCheckOut(user);
+document.getElementById(
+"resultPage"
+).style.display="block";
 
-    } 
-    // 3. ELSE → CHECK IN
-    else {
+document.getElementById(
+"statusIcon"
+).innerHTML="⏳";
 
-      if (!scannedBranch) {
-        throw new Error("QR not detected");
-      }
+document.getElementById(
+"scanResult"
+).innerHTML=
+"Checking...";
 
-      await autoCheckIn(user);
+// START PROCESS
 
-    }
-
-  } catch (error) {
-
-    showError(error.message);
-
-  }
+autoAttendance();
 
 }
 
+// =====================================================
+// MAIN CONTROLLER
+// =====================================================
+async function autoAttendance(){
 
-// =========================
-// AUTO CHECK IN
-// =========================
-async function autoCheckIn(user) {
+try{
 
-  try {
+const user =
+JSON.parse(
+localStorage.getItem("user")
+);
 
-    document.getElementById("scanStatus").innerHTML =
-      "Getting location...";
+if(!user)
+throw Error(
+"User not found"
+);
 
-    const gps = await getLocation();
+// CHECK TODAY STATUS
+const status =
+await apiGet({
+action:"getTodayAttendance",
+employee_id:user.employee_id
+});
 
-    document.getElementById("scanStatus").innerHTML =
-      "Submitting check-in...";
+if(
+status.success &&
+status.exists
+){
 
-    const result = await apiPost({
-      action: "checkIn",
-      employee_id: user.employee_id,
-      branch_id: scannedBranch,
-      lat: gps.lat,
-      lng: gps.lng
-    });
-
-    if (result.success) {
-
-      successUI("Check In Successful");
-
-      stopScanner();
-
-      refreshDashboard();
-
-    } else {
-
-      showError(result.message);
-
-    }
-
-  } catch (error) {
-
-    showError(error.message);
-
-  }
+// HAS CHECK IN
+await checkOut(user);
 
 }
 
+else{
+// NEW CHECK IN
+await checkIn(user);
+}
 
-// =========================
-// AUTO CHECK OUT
-// =========================
-async function autoCheckOut(user) {
+}catch(err){
 
-  try {
+showResult(
 
-    document.getElementById("scanStatus").innerHTML =
-      "Processing check-out...";
+"❌",
 
-    const gps = await getLocation();
+err.message
 
-    const result = await apiPost({
-      action: "checkOut",
-      employee_id: user.employee_id,
-      lat: gps.lat,
-      lng: gps.lng
-    });
-
-    if (result.success) {
-
-      let text =
-        "Check Out Successful\n" +
-        "Work Hours: " +
-        result.data.workHours +
-        " hrs";
-
-      successUI(text);
-
-      stopScanner();
-
-      refreshDashboard();
-
-    } else {
-
-      showError(result.message);
-
-    }
-
-  } catch (error) {
-
-    showError(error.message);
-
-  }
+);
 
 }
 
+}
 
-// =========================
+// =====================================================
+// CHECK IN
+// =====================================================
+async function checkIn(user){
+
+try{
+
+showResult(
+
+"⏳",
+
+"Getting GPS..."
+
+);
+
+const gps =
+await getLocation();
+
+const result =
+await apiPost({
+
+action:"checkIn",
+employee_id:
+user.employee_id,
+branch_id:
+scannedBranch,
+lat:gps.lat,
+lng:gps.lng
+
+});
+
+if(result.success){
+
+showResult(
+
+"✅",
+
+"Check In Successful"
+
+);
+
+}
+
+else{
+
+showResult(
+
+"❌",
+
+result.message
+
+);
+
+}
+
+}catch(err){
+
+showResult(
+
+"❌",
+
+err.message
+
+);
+
+}
+
+}
+
+// =====================================================
+// CHECK OUT
+// =====================================================
+async function checkOut(user){
+
+try{
+
+showResult(
+
+"⏳",
+
+"Checking Out..."
+
+);
+
+const gps =
+await getLocation();
+
+const result =
+await apiPost({
+
+action:"checkOut",
+employee_id:
+user.employee_id,
+lat:gps.lat,
+lng:gps.lng
+
+});
+
+if(result.success){
+
+showResult(
+
+"✅",
+
+"Check Out Successful\nWork Hours: "
++
+result.data.workHours
++
+" hrs"
+
+);
+
+}
+
+else{
+
+showResult(
+
+"❌",
+
+result.message
+
+);
+
+}
+
+}catch(err){
+
+showResult(
+
+"❌",
+
+err.message
+
+);
+
+}
+
+}
+
+// =====================================================
+// GPS
+// =====================================================
+function getLocation(){
+
+return new Promise(
+
+(resolve,reject)=>{
+
+if(!navigator.geolocation){
+
+reject(
+new Error(
+"GPS not supported"
+)
+);
+
+return;
+
+}
+
+navigator.geolocation.getCurrentPosition(
+
+(position)=>{
+
+resolve({
+
+lat:
+position.coords.latitude,
+
+lng:
+position.coords.longitude
+
+});
+
+},
+
+()=>{
+
+reject(
+new Error(
+"GPS permission denied"
+)
+);
+
+},
+
+{
+
+enableHighAccuracy:true,
+
+timeout:10000
+
+}
+
+);
+
+}
+
+);
+
+}
+
+// =====================================================
 // STOP CAMERA
-// =========================
-function stopScanner() {
+// =====================================================
+function stopScanner(){
 
-  try {
+try{
 
-    if (scanner) {
-      scanner.clear();
-    }
-
-  } catch (e) {
-    console.log(e);
-  }
+if(scanner){
+scanner.clear();
 
 }
 
+}catch(e){
 
-// =========================
-// UI HELPERS
-// =========================
-function successUI(message) {
-
-  document.getElementById("statusIcon").innerHTML = "✅";
-
-  document.getElementById("scanStatus").innerHTML = message;
-
-  document.getElementById("scanTime").innerHTML =
-    new Date().toLocaleTimeString();
-
-  isProcessing = false;
+console.log(e);
 
 }
 
+}
 
-function showError(message) {
+// =====================================================
+// RESULT UI
+// =====================================================
+function showResult(icon,text){
 
-  document.getElementById("statusIcon").innerHTML = "❌";
+document.getElementById(
+"statusIcon"
+).innerHTML=icon;
 
-  document.getElementById("scanStatus").innerHTML = message;
+document.getElementById(
+"scanResult"
+).innerHTML=text;
 
-  isProcessing = false;
+document.getElementById(
+"scanTime"
+).innerHTML=
+
+new Date().toLocaleTimeString(
+"en-MY",
+{
+timeZone:
+"Asia/Kuala_Lumpur"
+}
+
+);
+
+isProcessing=false;
 
 }
 
+// =====================================================
+// RESTART
+// =====================================================
+function restartScanner(){
 
-// =========================
-// REFRESH DASHBOARD FLAG
-// =========================
-function refreshDashboard() {
-
-  localStorage.setItem("refreshDashboard", Date.now());
-
-}
-
-
-// =========================
-// RESTART SCANNER
-// =========================
-function restartScanner() {
-
-  location.reload();
+location.reload();
 
 }
+
+// START
+startScanner();
