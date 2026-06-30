@@ -1,18 +1,28 @@
 <div class="scan-page">
 
+<!-- CAMERA PAGE -->
+
+<div id="cameraPage">
 
 <h2>
 QR Attendance
 </h2>
 
-
-
 <div id="reader"></div>
 
+<p>
+Please scan branch QR
+</p>
+
+</div>
+
+<!-- RESULT PAGE -->
+
+<div id="resultPage"
+style="display:none;">
 
 
 <div class="scan-status">
-
 
 <div id="statusIcon">
 
@@ -21,19 +31,16 @@ QR Attendance
 </div>
 
 
-<h3 id="scanStatus">
+<h2 id="scanResult">
 
-Please scan branch QR
+Processing...
 
-</h3>
+</h2>
 
 
 <p id="scanTime">
 
 </p>
-
-
-</div>
 
 
 <button onclick="restartScanner()">
@@ -42,5 +49,9 @@ Scan Again
 
 </button>
 
+</div>
+
+
+</div>
 
 </div>
