@@ -1,157 +1,71 @@
-async function loadHome(){
-
-const user =
-JSON.parse(
-localStorage.getItem("user")
-);
-
-if(!user){
-return;
+function initHomePage(){
+loadHome();
 }
 
 // ===============================
-// USER INFO
+// LOAD HOME
 // ===============================
-document.getElementById(
-"employeeName"
-).innerHTML =
+async function loadHome(){
+
+const user = JSON.parse(localStorage.getItem("user"));
+
+if(!user) return;
+
+// USER INFO
+document.getElementById("employeeName").innerHTML =
 user.employee_name || user.employee_id;
 
-document.getElementById(
-"branchName"
-).innerHTML =
+document.getElementById("branchName").innerHTML =
 user.branch_name || user.branch_id;
 
-// ===============================
 // DASHBOARD
-// ===============================
 try{
 
-const dash =
-await apiGet({
+const dash = await apiGet({
 action:"getDashboard",
 branch:user.branch_id
 });
 
 if(dash.success){
-
-document.getElementById(
-"present"
-).innerHTML =
-dash.data.present;
-
-document.getElementById(
-"late"
-).innerHTML =
-dash.data.late;
-
+document.getElementById("present").innerHTML = dash.data.present;
+document.getElementById("late").innerHTML = dash.data.late;
 }
 
 }catch(err){
-
-console.log(
-"Dashboard Error",
-err
-);
-
+console.log("Dashboard Error",err);
 }
 
-// ===============================
-// TODAY ATTENDANCE
-// ===============================
+// TODAY
 try{
 
-const today =
-await apiGet({
+const today = await apiGet({
 action:"getTodayAttendance",
 employee_id:user.employee_id
 });
 
-if(
-today.success &&
-today.exists
-){
+if(today.success && today.exists){
 
-const record =
-today.record;
+const record = today.record;
 
-document.getElementById(
-"checkIn"
-).innerHTML =
+document.getElementById("checkIn").innerHTML =
 record.checkIn || "--:--";
 
-document.getElementById(
-"checkOut"
-).innerHTML =
+document.getElementById("checkOut").innerHTML =
 record.checkOut || "--:--";
 
-if(record.checkOut){
+document.getElementById("statusText").innerHTML =
+record.checkOut ? "Completed" : "Working";
 
-document.getElementById(
-"statusText"
-).innerHTML =
-"Completed";
+}else{
 
-}
-
-else{
-
-document.getElementById(
-"statusText"
-).innerHTML =
-"Working";
-
-}
-
-}
-
-else{
-
-document.getElementById(
-"checkIn"
-).innerHTML =
-"--:--";
-
-document.getElementById(
-"checkOut"
-).innerHTML =
-"--:--";
-
-document.getElementById(
-"statusText"
-).innerHTML =
-"Not Started";
-
+document.getElementById("checkIn").innerHTML="--:--";
+document.getElementById("checkOut").innerHTML="--:--";
+document.getElementById("statusText").innerHTML="Not Started";
 }
 
 }catch(err){
-
-console.log(
-"Today Attendance Error",
-err
-);
-
-document.getElementById(
-"statusText"
-).innerHTML =
-"Error";
-
+console.log("Today Error",err);
+document.getElementById("statusText").innerHTML="Error";
 }
 
 }
-
-// =====================================================
-// AUTO REFRESH
-// =====================================================
-
-// When return from Scan
-window.addEventListener(
-"focus",
-()=>{
-loadHome();
-}
-
-);
-
-// When page loaded
-loadHome();
