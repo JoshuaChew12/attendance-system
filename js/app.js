@@ -54,8 +54,18 @@ script.src="js/"+page+".js";
 
 script.onload=function(){
 
-if(PageController[page]){
-PageController[page]();
+console.log("PAGE LOADED:", page);
+
+// ===============================
+// SAFE CALL CONTROLLER
+// ===============================
+
+const fn = PageController[page];
+
+if(typeof fn === "function"){
+fn();
+}else{
+console.warn("No controller for page:", page);
 }
 
 };
