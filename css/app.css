@@ -1,451 +1,397 @@
 *{
-
 box-sizing:border-box;
-
 }
-
-
 
 body{
 
-
 margin:0;
-
-
 font-family:
-
+-apple-system,
+BlinkMacSystemFont,
+"Segoe UI",
 Arial,
 sans-serif;
-
-
-background:#f5f6fa;
-
-
-padding-bottom:80px;
-
+background:#f5f7fb;
+padding-bottom:90px;
+color:#333;
 
 }
 
-
-
-/*
-=================
-CONTENT
-=================
-*/
-
-
+/* =====================================================
+   CONTENT
+===================================================== */
 #content{
 
-
 padding:20px;
-
-
 min-height:100vh;
 
-
 }
 
-
-
-
-
-/*
-=================
-PAGE ANIMATION
-=================
-*/
-
-
+/* =====================================================
+   PAGE ANIMATION
+===================================================== */
 .page-animation{
 
-
 animation:
-
-slideIn
-0.25s ease;
-
+slideIn .25s ease;
 
 }
-
-
 
 @keyframes slideIn{
 
-
 from{
 
-
 opacity:0;
-
-
 transform:
-translateX(30px);
-
+translateX(25px);
 
 }
-
 
 to{
 
-
 opacity:1;
-
-
 transform:
 translateX(0);
 
+}
 
 }
 
-
-}
-
-
-
-
-
-/*
-=================
-BOTTOM NAV
-=================
-*/
-
-
+/* =====================================================
+   BOTTOM NAV
+===================================================== */
 .bottom-nav{
 
-
 position:fixed;
-
-
 bottom:0;
-
-
 left:0;
-
-
 right:0;
-
-
-height:75px;
-
-
+height:80px;
 background:white;
-
-
 display:flex;
-
-
 justify-content:space-around;
-
-
 align-items:center;
-
-
 border-radius:
-
-20px 20px 0 0;
-
-
+25px 25px 0 0;
 box-shadow:
-
-0 -5px 20px rgba(0,0,0,.12);
-
-
-
+0 -5px 25px rgba(0,0,0,.12);
 z-index:999;
 
-
 }
-
-
-
-
 
 .bottom-nav button{
 
-
 border:none;
-
-
 background:none;
-
-
 font-size:12px;
-
-
+color:#666;
 display:flex;
-
-
 flex-direction:column;
-
-
 align-items:center;
-
-
 gap:5px;
 
-
-color:#555;
-
-
 }
-
-
 
 .bottom-nav span{
 
-
-font-size:22px;
-
+font-size:24px;
 
 }
-
-
-
 
 .bottom-nav button:active{
 
-
 transform:
-
 scale(.9);
 
-
 }
 
-/* =================
-HOME DASHBOARD
-================= */
-
-
+/* =====================================================
+   HOME PAGE
+===================================================== */
 .welcome-card{
 
+background:
 
-background:#2563eb;
-
+linear-gradient(
+135deg,
+#2563eb,
+#4f46e5
+);
 
 color:white;
-
-
-padding:20px;
-
-
-border-radius:20px;
-
-
+padding:25px;
+border-radius:25px;
 margin-bottom:20px;
-
+box-shadow:
+0 10px 25px rgba(37,99,235,.25);
 
 }
 
+.welcome-card h2{
 
+margin:0 0 10px 0;
+
+}
+
+.welcome-card p{
+
+margin:0;
+opacity:.9;
+
+}
 
 .attendance-card{
 
-
 background:white;
-
-
 padding:20px;
-
-
-border-radius:20px;
-
-
+border-radius:25px;
 box-shadow:
-0 5px 15px rgba(0,0,0,.08);
-
+0 8px 20px rgba(0,0,0,.08);
+margin-bottom:20px;
 
 }
-
-
 
 .time-row{
 
-
 display:flex;
-
-
 justify-content:space-around;
-
-
 text-align:center;
 
-
 }
-
-
 
 .time-row p{
 
-
-color:#777;
-
+color:#888;
+font-size:13px;
 
 }
 
+.time-row h2{
 
+margin-top:5px;
+font-size:26px;
+
+}
 
 .stats{
 
-
 display:flex;
-
-
 gap:15px;
 
-
-margin-top:20px;
-
-
 }
-
-
 
 .stat-card{
 
-
 flex:1;
-
-
 background:white;
-
-
 padding:20px;
-
-
-border-radius:20px;
-
-
+border-radius:25px;
 text-align:center;
-
-
 box-shadow:
-0 5px 15px rgba(0,0,0,.08);
-
+0 8px 20px rgba(0,0,0,.08);
 
 }
 
+.stat-card h1{
+
+margin:10px 0 0;
+
+}
+
+/* =====================================================
+   SCAN PAGE
+===================================================== */
 .scan-page{
 
-
 text-align:center;
 
-
 }
-
-
 
 #reader{
 
-
 width:100%;
-
-
-max-width:350px;
-
-
+max-width:360px;
 margin:auto;
-
-
-}
-
-
-
-.scan-page button{
-
-
-width:80%;
-
-
-height:50px;
-
-
-margin:10px;
-
-
-border:none;
-
-
-border-radius:15px;
-
-
-background:#2563eb;
-
-
-color:white;
-
-
-font-size:18px;
-
+border-radius:20px;
+overflow:hidden;
 
 }
 
 .scan-status{
 
-
-margin-top:20px;
-
-
 background:white;
-
-
-padding:20px;
-
-
-border-radius:20px;
-
-
-text-align:center;
-
-
+padding:30px;
+border-radius:25px;
 box-shadow:
-0 5px 15px rgba(0,0,0,.1);
-
+0 10px 25px rgba(0,0,0,.1);
 
 }
 
-
-
 #statusIcon{
 
+font-size:60px;
+margin-bottom:15px;
 
-font-size:50px;
+}
 
+.scan-status button{
+
+width:80%;
+height:50px;
+border:none;
+border-radius:20px;
+background:#2563eb;
+color:white;
+font-size:18px;
+margin-top:20px;
+
+}
+
+/* =====================================================
+   CALENDAR
+===================================================== */
+.calendar-page{
+
+width:100%;
+
+}
+
+.calendar-header{
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:15px;
+
+}
+
+.calendar-header h2{
+
+font-size:20px;
+
+}
+
+.calendar-header button{
+
+border:none;
+background:white;
+width:42px;
+height:42px;
+border-radius:50%;
+font-size:28px;
+box-shadow:
+0 3px 10px rgba(0,0,0,.1);
+
+}
+
+.week-title{
+
+display:grid;
+grid-template-columns:
+repeat(7,1fr);
+text-align:center;
+font-size:12px;
+color:#777;
+margin-bottom:10px;
 
 }
 
 .calendar-grid{
 
 display:grid;
-grid-template-columns:repeat(7,1fr);
+grid-template-columns:
+repeat(7,1fr);
 gap:8px;
-margin-top:20px;
 
 }
 
 .day{
 
+aspect-ratio:1;
+display:flex;
+align-items:center;
+justify-content:center;
 background:white;
-padding:12px;
-border-radius:10px;
-text-align:center;
-cursor:pointer;
+border-radius:50%;
 font-size:14px;
+cursor:pointer;
 
 }
 
-.day.green{ background:#22c55e; color:white; }
-.day.yellow{ background:#facc15; }
-.day.red{ background:#ef4444; color:white; }
-.day.gray{ background:#e5e7eb; }
+.day.empty{
+
+background:transparent;
+
+}
+
+.present-day{
+
+background:#22c55e;
+color:white;
+
+}
+
+.late-day{
+
+background:#facc15;
+
+}
+
+.absent-day{
+
+background:#ef4444;
+color:white;
+
+}
 
 .detail-panel{
 
 margin-top:20px;
-padding:15px;
 background:white;
-border-radius:15px;
+padding:20px;
+border-radius:25px;
+box-shadow:
+0 8px 20px rgba(0,0,0,.08);
+
+}
+
+/* =====================================================
+   BUTTON GENERAL
+===================================================== */
+button{
+
+cursor:pointer;
+
+}
+
+button:active{
+
+transform:
+scale(.95);
+
+}
+
+/* =====================================================
+   MOBILE RESPONSIVE
+===================================================== */
+@media(max-width:600px){
+
+#content{
+
+padding:15px;
+
+}
+
+.welcome-card{
+
+padding:20px;
+
+}
+
+.stat-card{
+
+padding:15px;
+
+}
 
 }
