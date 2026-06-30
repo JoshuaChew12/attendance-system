@@ -62,47 +62,56 @@ loadScript(page);
 
 
 
-const PageController = {
-  home: {
-    init: loadHome
-  },
-  scan: {
-    init: initScanPage,
-    destroy: destroyScanPage
-  },
-  calendar: {
-    init: initCalendarPage,
-    destroy: destroyCalendarPage
-  }
-};
 
-let currentPageInstance = null;
 
 function loadScript(page){
 
-  // destroy previous page
-  if(currentPageInstance?.destroy){
-    currentPageInstance.destroy();
-  }
 
-  const old = document.getElementById("page-script");
-  if(old) old.remove();
 
-  const script = document.createElement("script");
-  script.id = "page-script";
-  script.src = "js/" + page + ".js";
+const old =
+document.getElementById(
+"page-script"
+);
 
-  script.onload = function(){
 
-    if(PageController[page]){
-      currentPageInstance = PageController[page];
-      currentPageInstance.init();
-    }
 
-  };
+if(old){
 
-  document.body.appendChild(script);
+old.remove();
+
 }
+
+
+
+const script =
+document.createElement(
+"script"
+);
+
+
+
+script.id =
+"page-script";
+
+
+
+script.src =
+"js/"+page+".js";
+
+
+
+document.body.appendChild(
+script
+);
+
+
+
+}
+
+
+
+
+
 
 
 // Login Check
