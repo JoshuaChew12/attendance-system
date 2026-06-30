@@ -1,163 +1,175 @@
-/*
-==========================
-Attendance App Router
-==========================
-*/
+// =====================================================
+// PAGE CONTROLLER
+// =====================================================
 
+const PageController = {
+
+    home:{
+        script:"home.js",
+        show:"onHomeShow",
+        hide:"onHomeHide"
+    },
+
+    scan:{
+        script:"scan.js",
+        show:"onScanShow",
+        hide:"onScanHide"
+    },
+
+    calendar:{
+        script:"calendar.js",
+        show:"onCalendarShow",
+        hide:"onCalendarHide"
+    }
+
+};
+
+
+let currentPage = null;
+
+
+// =====================================================
+// LOAD PAGE
+// =====================================================
 
 function loadPage(page){
 
 
-fetch(
-"pages/"+page+".html"
-)
+    // ===============================
+    // HIDE CURRENT PAGE
+    // ===============================
 
+    if(currentPage){
 
-.then(
-response=>response.text()
-)
+        const old =
+        PageController[currentPage];
 
+        if(
+            old &&
+            typeof window[old.hide] === "function"
+        ){
 
-.then(
-html=>{
+            window[old.hide]();
 
+        }
 
-const content =
-document.getElementById(
-"content"
-);
-
-
-
-content.innerHTML =
-html;
+    }
 
 
 
-content.classList.remove(
-"page-animation"
-);
+    // ===============================
+    // LOAD HTML
+    // ===============================
+
+    showPage(page);
 
 
 
-void content.offsetWidth;
+    // ===============================
+    // LOAD SCRIPT
+    // ===============================
+
+    const config =
+    PageController[page];
+
+
+    if(!config)
+    return;
 
 
 
-content.classList.add(
-"page-animation"
-);
+    const oldScript =
+    document.getElementById(
+        "page-script"
+    );
+
+
+    if(oldScript){
+        oldScript.remove();
+    }
 
 
 
+    const script =
+    document.createElement(
+        "script"
+    );
 
-loadScript(page);
+
+    script.id="page-script";
 
 
+    script.src =
+    "js/"+config.script;
+
+
+
+    script.onload=function(){
+
+
+        currentPage = page;
+
+
+        if(
+            typeof window[config.show]
+            ===
+            "function"
+        ){
+
+            window[config.show]();
+
+        }
+
+    };
+
+
+    document.body.appendChild(script);
+
+
+}
+
+
+
+// =====================================================
+// PAGE DISPLAY
+// =====================================================
+
+function showPage(page){
+
+
+    document
+    .querySelectorAll(".page")
+    .forEach(
+        p=>{
+            p.style.display="none";
+        }
+    );
+
+
+    const target =
+    document.getElementById(
+        page+"Page"
+    );
+
+
+    if(target){
+
+        target.style.display="block";
+
+    }
+
+}
+
+
+
+// =====================================================
+// START APP
+// =====================================================
+
+document.addEventListener(
+"DOMContentLoaded",
+()=>{
+
+    loadPage("home");
 
 });
-
-
-}
-
-
-
-
-
-function loadScript(page){
-
-
-
-const old =
-document.getElementById(
-"page-script"
-);
-
-
-
-if(old){
-
-old.remove();
-
-}
-
-
-
-const script =
-document.createElement(
-"script"
-);
-
-
-
-script.id =
-"page-script";
-
-
-
-script.src =
-"js/"+page+".js";
-
-
-
-document.body.appendChild(
-script
-);
-
-
-
-}
-
-
-
-
-
-
-
-// Login Check
-
-
-function checkLogin(){
-
-
-const user =
-localStorage.getItem(
-"user"
-);
-
-
-
-if(!user){
-
-
-window.location.href=
-"index.html";
-
-
-return false;
-
-
-}
-
-
-return true;
-
-
-}
-
-
-
-
-
-// Start App
-
-
-if(checkLogin()){
-
-
-loadPage(
-"home"
-);
-
-
-}
