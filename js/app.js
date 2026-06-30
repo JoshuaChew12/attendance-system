@@ -1,73 +1,11 @@
 /*
 ==========================
-Attendance App Router V2
+Attendance App Router
 ==========================
 */
 
 
-let currentPage = null;
-let currentScript = null;
-
-
-// ===============================
-// PAGE CONTROLLER
-// ===============================
-
-const PageController = {
-
-home:{
-    init:loadHome,
-    destroy:null
-},
-
-scan:{
-    init:startScanner,
-    destroy:stopScanner
-},
-
-calendar:{
-    init:loadCalendar,
-    destroy:null
-}
-
-};
-
-
-
-
-// ===============================
-// LOAD PAGE
-// ===============================
-
 async function loadPage(page){
-
-
-/*
-DESTROY OLD PAGE
-*/
-
-if(currentPage){
-
-const controller =
-PageController[currentPage];
-
-
-if(
-controller &&
-controller.destroy
-){
-
-controller.destroy();
-
-}
-
-}
-
-
-
-/*
-LOAD HTML
-*/
 
 
 const response =
@@ -80,59 +18,23 @@ const html =
 await response.text();
 
 
-
 const content =
 document.getElementById(
 "content"
 );
 
 
-content.innerHTML =
-html;
+content.innerHTML=html;
 
 
-
-content.classList.remove(
-"page-animation"
-);
-
-
-void content.offsetWidth;
-
-
-content.classList.add(
-"page-animation"
-);
-
-
-
-/*
-LOAD JS
-*/
 
 await loadScript(page);
 
+if(PageInit[page]){
 
-
-/*
-INIT PAGE
-*/
-
-const controller =
-PageController[page];
-
-
-if(
-controller &&
-controller.init
-){
-
-controller.init();
+PageInit[page]();
 
 }
-
-
-currentPage=page;
 
 
 }
@@ -140,53 +42,51 @@ currentPage=page;
 
 
 
-// ===============================
-// LOAD SCRIPT
-// ===============================
 
 function loadScript(page){
 
+return new Promise((resolve)=>{
 
-return new Promise(
-(resolve)=>{
+const old =
+document.getElementById(
+"page-script"
+);
 
-
-if(currentScript){
-
-currentScript.remove();
-
+if(old){
+old.remove();
 }
-
-
 
 const script =
 document.createElement(
 "script"
 );
 
-
 script.id="page-script";
-
 
 script.src =
 "js/"+page+".js";
 
+script.onload=function(){
 
-script.onload=()=>{
+resolve();
+
+};
+
+script.onerror=function(){
+
+console.log(
+"Load JS Error:",
+page
+);
 
 resolve();
 
 };
 
 
-document.body.appendChild(
-script
-);
-
-
+document.body.appendChild(script);
 
 });
-
 
 }
 
@@ -194,9 +94,9 @@ script
 
 
 
-// ===============================
-// LOGIN CHECK
-// ===============================
+
+// Login Check
+
 
 function checkLogin(){
 
@@ -207,12 +107,16 @@ localStorage.getItem(
 );
 
 
+
 if(!user){
+
 
 window.location.href=
 "index.html";
 
+
 return false;
+
 
 }
 
@@ -225,9 +129,8 @@ return true;
 
 
 
-// ===============================
-// START APP
-// ===============================
+
+// Start App
 
 
 if(checkLogin()){
