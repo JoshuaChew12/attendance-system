@@ -7,102 +7,36 @@ let isProcessing = false;
 // =====================================================
 async function startScanner(){
 
-console.log(
-"Starting QR Scanner"
-);
+console.log("Starting QR Scanner");
 
-const reader =
-document.getElementById(
-"reader"
-);
+const reader=document.getElementById("reader");
+if(!reader||qrScanner) return;
 
-if(!reader){
-
-console.log(
-"Reader not found"
-);
-
-return;
-
-}
-
-// prevent duplicate
-
-if(qrScanner){
-
-console.log(
-"Scanner already exists"
-);
-
-return;
-
-}
-
-qrScanner =
-new Html5Qrcode(
-"reader"
-);
+qrScanner=new Html5Qrcode("reader");
 
 try{
 
-const cameras =
-await Html5Qrcode.getCameras();
+const cameras=await Html5Qrcode.getCameras();
+if(!cameras?.length) throw new Error("No camera found");
 
-if(!cameras ||
-cameras.length===0){
-
-throw new Error(
-"No camera found"
-);
-
-}
-
-let cameraId =
-cameras[0].id;
+// enterprise camera selection
+let cameraId=
+cameras.find(c=>/back|rear|environment/i.test(c.label))?.id
+|| cameras[cameras.length-1].id;
 
 await qrScanner.start(
-
 cameraId,
-
-{
-
-fps:10,
-
-qrbox:{
-width:250,
-height:250
-}
-
-},
-
-(decodedText)=>{
-
-qrSuccess(decodedText);
-
-},
-
-(errorMessage)=>{
-
-}
-
+{fps:10,qrbox:{width:250,height:250}},
+qrSuccess,
+()=>{}
 );
 
-console.log(
-"Camera Started"
-);
+console.log("Camera Started");
 
-}
-catch(err){
+}catch(err){
 
-console.log(
-"Camera Error",
-err
-);
-
-showResult(
-"❌",
-err.message
-);
+console.log("Camera Error",err);
+showResult("❌",err.message);
 
 }
 
