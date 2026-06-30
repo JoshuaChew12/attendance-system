@@ -1,8 +1,11 @@
-/*
-==========================
-Attendance App Router
-==========================
-*/
+const PageController = {
+
+home: loadHome,
+scan: initScanPage,
+calendar: initCalendarPage
+
+};
+
 function loadPage(page){
 
 fetch(
@@ -39,14 +42,6 @@ loadScript(page);
 });
 
 }
-
-const PageController = {
-
-home: loadHome,
-scan: initScanPage,
-calendar: initCalendarPage
-
-};
 
 function loadScript(page){
 
