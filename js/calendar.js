@@ -1,204 +1,335 @@
-let currentMonth = new Date().toISOString().slice(0,7);
-let calendarData = [];
+// =====================================================
+// CALENDAR V2
+// MOBILE APP STYLE
+// =====================================================
+let currentMonth =
+new Date()
+.toISOString()
+.slice(0,7);
 
+let calendarData=[];
 
-// =========================
-// FORMAT MONTH (防 2026-6 bug)
-// =========================
+// =====================================================
+// FORMAT MONTH
+// =====================================================
 function formatMonth(m){
 
-  if(!m) return "";
+const p=m.split("-");
 
-  const parts = m.split("-");
-
-  return parts[0] + "-" + String(parts[1]).padStart(2,"0");
+return p[0]+"-"+
+String(p[1]).padStart(2,"0");
 
 }
 
-
-// =========================
-// LOAD CALENDAR DATA
-// =========================
+// =====================================================
+// LOAD CALENDAR
+// =====================================================
 async function loadCalendar(){
 
-  console.log("📅 Calendar loading...");
+const user =
+JSON.parse(
+localStorage.getItem("user")
+);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+if(!user)
+return;
 
-  if(!user){
-    alert("No user found in localStorage");
-    return;
-  }
+document.getElementById(
+"monthTitle"
+).innerHTML =
+formatMonth(currentMonth);
 
-  document.getElementById("monthTitle").innerHTML = currentMonth;
+try{
 
-  try{
+const res =
+await apiGet({
+action:
+"getMonthlyAttendance",
+employee_id:
+user.employee_id,
+month:
+formatMonth(currentMonth)
 
-    const res = await apiGet({
-      action: "getMonthlyAttendance",
-      employee_id: user.employee_id,
-      month: formatMonth(currentMonth)
-    });
+});
 
-    console.log("📡 API Response:", res);
+if(res.success){
 
-    if(res && res.success){
+calendarData =
+res.data || [];
 
-      calendarData = res.data || [];
-      renderCalendar();
-
-    }else{
-
-      alert(res?.message || "API failed");
-
-    }
-
-  }catch(err){
-
-    console.error("❌ Calendar API Error:", err);
-
-    alert("API error: " + err.message);
-
-  }
+renderCalendar();
 
 }
 
+}catch(err){
 
-// =========================
-// RENDER CALENDAR GRID
-// =========================
+console.log(
+"Calendar Error",
+err
+);
+
+document.getElementById(
+"calendarGrid"
+).innerHTML=
+
+"API Error";
+
+}
+
+}
+
+// =====================================================
+// RENDER CALENDAR
+// =====================================================
 function renderCalendar(){
 
-  const grid = document.getElementById("calendarGrid");
+const grid =
+document.getElementById(
+"calendarGrid"
+);
 
-  if(!grid){
-    alert("❌ calendarGrid not found in HTML");
-    return;
-  }
+grid.innerHTML="";
 
-  grid.innerHTML = "";
+const year =
+Number(
+currentMonth.split("-")[0]
+);
 
-  const year = Number(currentMonth.split("-")[0]);
-  const month = Number(currentMonth.split("-")[1]);
+const month =
+Number(
+currentMonth.split("-")[1]
+);
 
-  const daysInMonth = new Date(year, month, 0).getDate();
+// first day
 
-  for(let i=1;i<=daysInMonth;i++){
+const firstDay =
+new Date(
+year,
+month-1,
+1
+)
+.getDay();
 
-    const date = `${currentMonth}-${String(i).padStart(2,'0')}`;
+// days
 
-    const record = calendarData.find(d => d.date === date);
+const totalDays =
+new Date(
+year,
+month,
+0
+)
+.getDate();
 
-    let color = "gray";
+// empty before day 1
 
-    if(record){
+for(
+let i=0;
+i<firstDay;
+i++
+){
 
-      const status = record.status;
+const empty=
+document.createElement("div");
 
-      if(status === "Present") color = "green";
-      else if(status === "Late") color = "yellow";
-      else if(status === "Absent") color = "red";
-      else color = "gray";
+empty.className="day empty";
 
-    }
-
-    const div = document.createElement("div");
-
-    div.className = "day " + color;
-    div.innerText = i;
-
-    div.onclick = () => showDetail(date);
-
-    grid.appendChild(div);
-
-  }
-
-  console.log("✅ Calendar rendered:", daysInMonth, "days");
+grid.appendChild(empty);
 
 }
 
+// dates
 
-// =========================
-// SHOW DAY DETAIL
-// =========================
+for(
+let i=1;
+i<=totalDays;
+i++
+){
+
+const date =
+
+`${currentMonth}-${String(i).padStart(2,"0")}`;
+
+const record =
+
+calendarData.find(
+
+d=>d.date===date
+
+);
+
+const div =
+document.createElement("div");
+
+div.className="day";
+
+div.innerHTML=i;
+
+if(record){
+
+if(record.status=="Present"){
+
+div.classList.add(
+"present-day"
+);
+
+}
+
+else if(record.status=="Late"){
+
+div.classList.add(
+"late-day"
+);
+
+}
+
+else if(record.status=="Absent"){
+
+div.classList.add(
+"absent-day"
+);
+
+}
+
+}
+
+div.onclick=()=>{
+
+showDetail(date);
+
+};
+
+grid.appendChild(div);
+
+}
+  
+}
+
+// =====================================================
+// DETAIL
+// =====================================================
 async function showDetail(date){
 
-  try{
+const user =
+JSON.parse(
+localStorage.getItem("user")
+);
 
-    const user = JSON.parse(localStorage.getItem("user"));
+const res =
+await apiGet({
 
-    const res = await apiGet({
-      action: "getAttendanceByDate",
-      employee_id: user.employee_id,
-      date: date
-    });
+action:
+"getAttendanceByDate",
+employee_id:
+user.employee_id,
+date:date
 
-    const box = document.getElementById("detailBox");
+});
 
-    if(res && res.success && res.data){
+const box =
+document.getElementById(
+"detailBox"
+);
 
-      const d = res.data;
+if(
+res.success &&
+res.data
+){
 
-      box.innerHTML = `
-        <b>Date:</b> ${d.date || "-"}<br>
-        <b>Day:</b> ${d.day || "-"}<br><br>
+const d=res.data;
 
-        <b>Check In:</b> ${d.checkIn || "-"}<br>
-        <b>Check Out:</b> ${d.checkOut || "-"}<br><br>
+box.innerHTML=`
 
-        <b>Work Hours:</b> ${d.workHours || 0}<br>
-        <b>Late:</b> ${d.lateMinutes || 0} min<br>
-        <b>Early Leave:</b> ${d.earlyLeaveMinutes || 0} min<br><br>
+<h3>
+${d.date}
+</h3>
 
-        <b>Status:</b> ${d.status || "-"}
-      `;
+<p>
+<b>Day:</b>
+${d.day}
+</p>
 
-    }else{
+<p>
+<b>Check In:</b>
+${d.checkIn || "-"}
+</p>
 
-      box.innerHTML = "No record";
+<p>
+<b>Check Out:</b>
+${d.checkOut || "-"}
+</p>
 
-    }
+<p>
+<b>Work Hours:</b>
+${d.workHours || 0}
+hrs
+</p>
 
-  }catch(err){
+<p>
+<b>Late:</b>
+${d.lateMinutes || 0}
+min
+</p>
 
-    console.error(err);
+<p>
+<b>Status:</b>
+${d.status || "-"}
+</p>
 
-    document.getElementById("detailBox").innerHTML =
-      "Error loading detail";
-
-  }
+`;
 
 }
 
+else{
+box.innerHTML=
+"No Attendance Record";
+}
 
-// =========================
-// MONTH NAVIGATION
-// =========================
+}
+
+// =====================================================
+// MONTH CONTROL
+// =====================================================
 function prevMonth(){
 
-  let d = new Date(currentMonth + "-01");
-  d.setMonth(d.getMonth() - 1);
+let d =
+new Date(
+currentMonth+"-01"
+);
 
-  currentMonth = d.toISOString().slice(0,7);
+d.setMonth(
+d.getMonth()-1
+);
 
-  loadCalendar();
+currentMonth =
+
+d.toISOString()
+.slice(0,7);
+
+loadCalendar();
 
 }
-
 
 function nextMonth(){
 
-  let d = new Date(currentMonth + "-01");
-  d.setMonth(d.getMonth() + 1);
+let d =
+new Date(
+currentMonth+"-01"
+);
 
-  currentMonth = d.toISOString().slice(0,7);
+d.setMonth(
+d.getMonth()+1
+);
 
-  loadCalendar();
+currentMonth =
+
+d.toISOString()
+.slice(0,7);
+
+loadCalendar();
 
 }
 
+// IMPORTANT
+// Because app.js dynamically loads pages
 
-// =========================
-// AUTO INIT
-// =========================
-document.addEventListener("DOMContentLoaded", loadCalendar);
+loadCalendar();
