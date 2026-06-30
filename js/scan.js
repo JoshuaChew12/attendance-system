@@ -185,9 +185,13 @@ async function autoCheckOut(user) {
     document.getElementById("scanStatus").innerHTML =
       "Processing check-out...";
 
+    const gps = await getLocation();
+
     const result = await apiPost({
       action: "checkOut",
-      employee_id: user.employee_id
+      employee_id: user.employee_id,
+      lat: gps.lat,
+      lng: gps.lng
     });
 
     if (result.success) {
