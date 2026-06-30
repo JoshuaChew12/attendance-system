@@ -328,8 +328,3 @@ d.toISOString()
 loadCalendar();
 
 }
-
-// IMPORTANT
-// Because app.js dynamically loads pages
-
-loadCalendar();
