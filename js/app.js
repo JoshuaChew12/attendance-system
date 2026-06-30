@@ -63,42 +63,46 @@ loadScript(page);
 
 
 const PageController = {
-  home: loadHome,
-  scan: initScanPage,
-  calendar: initCalendarPage
+  home: {
+    init: loadHome
+  },
+  scan: {
+    init: initScanPage,
+    destroy: destroyScanPage
+  },
+  calendar: {
+    init: initCalendarPage,
+    destroy: destroyCalendarPage
+  }
 };
 
-const PageDestroy = {
-  scan: destroyScanPage,
-  calendar: destroyCalendarPage
-};
+let currentPageInstance = null;
 
-function loadScript(page) {
+function loadScript(page){
+
+  // destroy previous page
+  if(currentPageInstance?.destroy){
+    currentPageInstance.destroy();
+  }
 
   const old = document.getElementById("page-script");
-
-  if (old) {
-    const prev = old.dataset.page;
-    if (PageDestroy[prev]) {
-      PageDestroy[prev]();
-    }
-    old.remove();
-  }
+  if(old) old.remove();
 
   const script = document.createElement("script");
   script.id = "page-script";
-  script.dataset.page = page;
   script.src = "js/" + page + ".js";
 
-  script.onload = function () {
-    if (PageController[page]) {
-      PageController[page]();
+  script.onload = function(){
+
+    if(PageController[page]){
+      currentPageInstance = PageController[page];
+      currentPageInstance.init();
     }
+
   };
 
   document.body.appendChild(script);
 }
-
 
 
 // Login Check
