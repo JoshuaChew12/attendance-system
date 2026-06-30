@@ -1,24 +1,110 @@
-let scanner = null;
+let qrScanner = null;
 let scannedBranch = "";
 let isProcessing = false;
-// =====================================================
-// START CAMERA
-// =====================================================
-function startScanner(){
 
-scanner =
-new Html5QrcodeScanner(
-"reader",
+// =====================================================
+// INIT CAMERA
+// =====================================================
+async function startScanner(){
+
+console.log(
+"Starting QR Scanner"
+);
+
+const reader =
+document.getElementById(
+"reader"
+);
+
+if(!reader){
+
+console.log(
+"Reader not found"
+);
+
+return;
+
+}
+
+// prevent duplicate
+
+if(qrScanner){
+
+console.log(
+"Scanner already exists"
+);
+
+return;
+
+}
+
+qrScanner =
+new Html5Qrcode(
+"reader"
+);
+
+try{
+
+const cameras =
+await Html5Qrcode.getCameras();
+
+if(!cameras ||
+cameras.length===0){
+
+throw new Error(
+"No camera found"
+);
+
+}
+
+let cameraId =
+cameras[0].id;
+
+await qrScanner.start(
+
+cameraId,
+
 {
+
 fps:10,
-qrbox:250
+
+qrbox:{
+width:250,
+height:250
+}
+
+},
+
+(decodedText)=>{
+
+qrSuccess(decodedText);
+
+},
+
+(errorMessage)=>{
+
 }
 
 );
 
-scanner.render(
-qrSuccess
+console.log(
+"Camera Started"
 );
+
+}
+catch(err){
+
+console.log(
+"Camera Error",
+err
+);
+
+showResult(
+"❌",
+err.message
+);
+
+}
 
 }
 
@@ -32,34 +118,27 @@ return;
 
 isProcessing=true;
 
-scannedBranch=decodedText;
-
-// STOP CAMERA FIRST
+scannedBranch =
+decodedText;
 
 stopScanner();
 
-// HIDE CAMERA
+// hide camera
 
 document.getElementById(
 "cameraPage"
 ).style.display="none";
 
-// SHOW RESULT
+// show result
 
 document.getElementById(
 "resultPage"
 ).style.display="block";
 
-document.getElementById(
-"statusIcon"
-).innerHTML="⏳";
-
-document.getElementById(
-"scanResult"
-).innerHTML=
-"Checking...";
-
-// START PROCESS
+showResult(
+"⏳",
+"Checking..."
+);
 
 autoAttendance();
 
@@ -77,16 +156,20 @@ JSON.parse(
 localStorage.getItem("user")
 );
 
-if(!user)
+if(!user){
+
 throw Error(
 "User not found"
 );
 
-// CHECK TODAY STATUS
+}
+
 const status =
 await apiGet({
-action:"getTodayAttendance",
-employee_id:user.employee_id
+action:
+"getTodayAttendance",
+employee_id:
+user.employee_id
 });
 
 if(
@@ -94,24 +177,22 @@ status.success &&
 status.exists
 ){
 
-// HAS CHECK IN
 await checkOut(user);
 
 }
 
 else{
-// NEW CHECK IN
+
 await checkIn(user);
+
 }
 
-}catch(err){
+}
+catch(err){
 
 showResult(
-
 "❌",
-
 err.message
-
 );
 
 }
@@ -126,11 +207,8 @@ async function checkIn(user){
 try{
 
 showResult(
-
 "⏳",
-
 "Getting GPS..."
-
 );
 
 const gps =
@@ -138,49 +216,40 @@ await getLocation();
 
 const result =
 await apiPost({
-
 action:"checkIn",
 employee_id:
 user.employee_id,
 branch_id:
 scannedBranch,
-lat:gps.lat,
-lng:gps.lng
-
+lat:
+gps.lat,
+lng:
+gps.lng
 });
 
 if(result.success){
 
 showResult(
-
 "✅",
-
 "Check In Successful"
-
 );
 
 }
-
 else{
 
 showResult(
-
 "❌",
-
 result.message
-
 );
 
 }
 
-}catch(err){
+}
+catch(err){
 
 showResult(
-
 "❌",
-
 err.message
-
 );
 
 }
@@ -195,11 +264,8 @@ async function checkOut(user){
 try{
 
 showResult(
-
 "⏳",
-
 "Checking Out..."
-
 );
 
 const gps =
@@ -207,51 +273,43 @@ await getLocation();
 
 const result =
 await apiPost({
-
 action:"checkOut",
 employee_id:
 user.employee_id,
-lat:gps.lat,
-lng:gps.lng
+lat:
+gps.lat,
+lng:
+gps.lng
 
 });
 
 if(result.success){
 
 showResult(
-
 "✅",
-
 "Check Out Successful\nWork Hours: "
 +
 result.data.workHours
 +
 " hrs"
-
 );
 
 }
-
 else{
 
 showResult(
-
 "❌",
-
 result.message
-
 );
 
 }
 
-}catch(err){
+}
+catch(err){
 
 showResult(
-
 "❌",
-
 err.message
-
 );
 
 }
@@ -284,13 +342,10 @@ navigator.geolocation.getCurrentPosition(
 (position)=>{
 
 resolve({
-
 lat:
 position.coords.latitude,
-
 lng:
 position.coords.longitude
-
 });
 
 },
@@ -298,9 +353,11 @@ position.coords.longitude
 ()=>{
 
 reject(
+
 new Error(
 "GPS permission denied"
 )
+
 );
 
 },
@@ -308,7 +365,6 @@ new Error(
 {
 
 enableHighAccuracy:true,
-
 timeout:10000
 
 }
@@ -324,18 +380,33 @@ timeout:10000
 // =====================================================
 // STOP CAMERA
 // =====================================================
-function stopScanner(){
+async function stopScanner(){
 
 try{
 
-if(scanner){
-scanner.clear();
+if(qrScanner){
+
+await qrScanner.stop();
+
+await qrScanner.clear();
+
+qrScanner=null;
+
+console.log(
+"Camera stopped"
+);
 
 }
 
-}catch(e){
+}
+catch(err){
 
-console.log(e);
+console.log(
+"Stop camera error",
+err
+);
+
+qrScanner=null;
 
 }
 
@@ -346,25 +417,37 @@ console.log(e);
 // =====================================================
 function showResult(icon,text){
 
+const iconBox =
 document.getElementById(
 "statusIcon"
-).innerHTML=icon;
+);
 
+const result =
 document.getElementById(
 "scanResult"
-).innerHTML=text;
+);
 
+const time =
 document.getElementById(
 "scanTime"
-).innerHTML=
+);
 
-new Date().toLocaleTimeString(
+if(iconBox)
+iconBox.innerHTML=icon;
+
+if(result)
+result.innerHTML=text;
+
+if(time)
+
+time.innerHTML =
+new Date()
+.toLocaleTimeString(
 "en-MY",
 {
 timeZone:
 "Asia/Kuala_Lumpur"
 }
-
 );
 
 isProcessing=false;
