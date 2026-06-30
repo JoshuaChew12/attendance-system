@@ -142,3 +142,32 @@ loadPage(
 
 
 }
+
+const PageInit={
+
+
+home:function(){
+
+if(typeof loadHome==="function")
+loadHome();
+
+},
+
+
+scan:function(){
+
+if(typeof startScanner==="function")
+startScanner();
+
+},
+
+
+calendar:function(){
+
+if(typeof loadCalendar==="function")
+loadCalendar();
+
+}
+
+
+};
