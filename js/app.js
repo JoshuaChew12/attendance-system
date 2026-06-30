@@ -1,32 +1,90 @@
 /*
 ==========================
-Attendance App Router
+Attendance App Router V2
 ==========================
 */
 
 
-function loadPage(page){
+let currentPage = null;
+let currentScript = null;
 
 
-fetch(
+// ===============================
+// PAGE CONTROLLER
+// ===============================
+
+const PageController = {
+
+home:{
+    init:loadHome,
+    destroy:null
+},
+
+scan:{
+    init:startScanner,
+    destroy:stopScanner
+},
+
+calendar:{
+    init:loadCalendar,
+    destroy:null
+}
+
+};
+
+
+
+
+// ===============================
+// LOAD PAGE
+// ===============================
+
+async function loadPage(page){
+
+
+/*
+DESTROY OLD PAGE
+*/
+
+if(currentPage){
+
+const controller =
+PageController[currentPage];
+
+
+if(
+controller &&
+controller.destroy
+){
+
+controller.destroy();
+
+}
+
+}
+
+
+
+/*
+LOAD HTML
+*/
+
+
+const response =
+await fetch(
 "pages/"+page+".html"
-)
+);
 
 
-.then(
-response=>response.text()
-)
+const html =
+await response.text();
 
-
-.then(
-html=>{
 
 
 const content =
 document.getElementById(
 "content"
 );
-
 
 
 content.innerHTML =
@@ -39,9 +97,7 @@ content.classList.remove(
 );
 
 
-
 void content.offsetWidth;
-
 
 
 content.classList.add(
@@ -50,8 +106,82 @@ content.classList.add(
 
 
 
+/*
+LOAD JS
+*/
 
-loadScript(page);
+await loadScript(page);
+
+
+
+/*
+INIT PAGE
+*/
+
+const controller =
+PageController[page];
+
+
+if(
+controller &&
+controller.init
+){
+
+controller.init();
+
+}
+
+
+currentPage=page;
+
+
+}
+
+
+
+
+// ===============================
+// LOAD SCRIPT
+// ===============================
+
+function loadScript(page){
+
+
+return new Promise(
+(resolve)=>{
+
+
+if(currentScript){
+
+currentScript.remove();
+
+}
+
+
+
+const script =
+document.createElement(
+"script"
+);
+
+
+script.id="page-script";
+
+
+script.src =
+"js/"+page+".js";
+
+
+script.onload=()=>{
+
+resolve();
+
+};
+
+
+document.body.appendChild(
+script
+);
 
 
 
@@ -64,58 +194,9 @@ loadScript(page);
 
 
 
-function loadScript(page){
-
-
-
-const old =
-document.getElementById(
-"page-script"
-);
-
-
-
-if(old){
-
-old.remove();
-
-}
-
-
-
-const script =
-document.createElement(
-"script"
-);
-
-
-
-script.id =
-"page-script";
-
-
-
-script.src =
-"js/"+page+".js";
-
-
-
-document.body.appendChild(
-script
-);
-
-
-
-}
-
-
-
-
-
-
-
-// Login Check
-
+// ===============================
+// LOGIN CHECK
+// ===============================
 
 function checkLogin(){
 
@@ -126,16 +207,12 @@ localStorage.getItem(
 );
 
 
-
 if(!user){
-
 
 window.location.href=
 "index.html";
 
-
 return false;
-
 
 }
 
@@ -148,8 +225,9 @@ return true;
 
 
 
-
-// Start App
+// ===============================
+// START APP
+// ===============================
 
 
 if(checkLogin()){
