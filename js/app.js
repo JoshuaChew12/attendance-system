@@ -62,55 +62,42 @@ loadScript(page);
 
 
 
+const PageController = {
+  home: loadHome,
+  scan: initScanPage,
+  calendar: initCalendarPage
+};
 
+const PageDestroy = {
+  scan: destroyScanPage,
+  calendar: destroyCalendarPage
+};
 
-function loadScript(page){
+function loadScript(page) {
 
+  const old = document.getElementById("page-script");
 
+  if (old) {
+    const prev = old.dataset.page;
+    if (PageDestroy[prev]) {
+      PageDestroy[prev]();
+    }
+    old.remove();
+  }
 
-const old =
-document.getElementById(
-"page-script"
-);
+  const script = document.createElement("script");
+  script.id = "page-script";
+  script.dataset.page = page;
+  script.src = "js/" + page + ".js";
 
+  script.onload = function () {
+    if (PageController[page]) {
+      PageController[page]();
+    }
+  };
 
-
-if(old){
-
-old.remove();
-
+  document.body.appendChild(script);
 }
-
-
-
-const script =
-document.createElement(
-"script"
-);
-
-
-
-script.id =
-"page-script";
-
-
-
-script.src =
-"js/"+page+".js";
-
-
-
-document.body.appendChild(
-script
-);
-
-
-
-}
-
-
-
-
 
 
 
