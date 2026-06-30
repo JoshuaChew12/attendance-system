@@ -4,87 +4,79 @@ Attendance App Router
 ==========================
 */
 
+let currentPage = null;
 
+
+// LOAD PAGE
 async function loadPage(page){
 
+// destroy old page
+if(currentPage==="scan" && typeof stopScanner==="function"){
+await stopScanner();
+}
 
+
+// load html
 const response =
-await fetch(
-"pages/"+page+".html"
-);
-
+await fetch("pages/"+page+".html");
 
 const html =
 await response.text();
 
 
-const content =
-document.getElementById(
-"content"
-);
+document.getElementById("content").innerHTML =
+html;
 
 
-content.innerHTML=html;
-
-
-
+// load js
 await loadScript(page);
 
+
+// init page
 if(PageInit[page]){
+await PageInit[page]();
+}
 
-PageInit[page]();
+
+currentPage = page;
 
 }
 
 
-}
 
-
-
-
-
+// LOAD SCRIPT
 function loadScript(page){
 
 return new Promise((resolve)=>{
 
-const old =
-document.getElementById(
-"page-script"
-);
 
-if(old){
+const old =
+document.getElementById("page-script");
+
+
+if(old)
 old.remove();
-}
+
+
 
 const script =
-document.createElement(
-"script"
-);
+document.createElement("script");
+
 
 script.id="page-script";
+script.src="js/"+page+".js";
 
-script.src =
-"js/"+page+".js";
 
-script.onload=function(){
+script.onload=()=>resolve();
 
+script.onerror=()=>{
+console.log("Load JS Error:",page);
 resolve();
-
-};
-
-script.onerror=function(){
-
-console.log(
-"Load JS Error:",
-page
-);
-
-resolve();
-
 };
 
 
 document.body.appendChild(script);
+
 
 });
 
@@ -92,82 +84,62 @@ document.body.appendChild(script);
 
 
 
-
-
-
-// Login Check
-
-
+// LOGIN CHECK
 function checkLogin(){
 
-
 const user =
-localStorage.getItem(
-"user"
-);
-
+localStorage.getItem("user");
 
 
 if(!user){
 
-
-window.location.href=
-"index.html";
-
+window.location.href="index.html";
 
 return false;
 
-
 }
-
 
 return true;
 
-
 }
 
 
 
-
-
-// Start App
-
-
-if(checkLogin()){
-
-
-loadPage(
-"home"
-);
-
-
-}
-
+// PAGE INIT
 const PageInit={
 
 
-home:function(){
+home:async()=>{
 
 if(typeof loadHome==="function")
-loadHome();
+await loadHome();
 
 },
 
 
-scan:function(){
+scan:async()=>{
 
 if(typeof startScanner==="function")
-startScanner();
+await startScanner();
 
 },
 
 
-calendar:function(){
+calendar:async()=>{
 
 if(typeof loadCalendar==="function")
-loadCalendar();
+await loadCalendar();
 
 }
 
 
 };
+
+
+
+// START APP
+if(checkLogin()){
+
+loadPage("home");
+
+}
