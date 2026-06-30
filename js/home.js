@@ -152,6 +152,3 @@ loadHome();
 }
 
 );
-
-// When page loaded
-loadHome();
