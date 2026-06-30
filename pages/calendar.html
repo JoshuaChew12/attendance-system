@@ -1,28 +1,85 @@
 <div class="calendar-page">
 
-
-<h2>Attendance Calendar</h2>
-
+<!-- HEADER -->
 
 <div class="calendar-header">
 
-<button onclick="prevMonth()">◀</button>
+<button onclick="prevMonth()">
+‹
+</button>
 
-<h3 id="monthTitle">Loading...</h3>
 
-<button onclick="nextMonth()">▶</button>
+<h2 id="monthTitle">
+Loading...
+</h2>
+
+
+<button onclick="nextMonth()">
+›
+</button>
 
 </div>
 
 
-<div id="calendarGrid"></div>
+<!-- WEEK HEADER -->
+
+<div class="week-title">
 
 
-<div class="detail-panel">
+<div>
+Sun
+</div>
 
-<h3>Details</h3>
 
-<div id="detailBox">Select a date</div>
+<div>
+Mon
+</div>
+
+
+<div>
+Tue
+</div>
+
+
+<div>
+Wed
+</div>
+
+
+<div>
+Thu
+</div>
+
+
+<div>
+Fri
+</div>
+
+
+<div>
+Sat
+</div>
+
+
+
+</div>
+
+
+
+<!-- CALENDAR GRID -->
+
+<div id="calendarGrid"
+class="calendar-grid">
+
+</div>
+
+
+<!-- DETAIL -->
+
+<div id="detailBox"
+class="detail-panel">
+
+Select date
 
 </div>
 
