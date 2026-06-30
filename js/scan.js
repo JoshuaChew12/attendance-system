@@ -1,14 +1,10 @@
-window.scanner=null;
+let scanner = null;
 let scannedBranch = "";
 let isProcessing = false;
 // =====================================================
 // START CAMERA
 // =====================================================
 function startScanner(){
-
-if(scanner){
-return;
-}
 
 scanner =
 new Html5QrcodeScanner(
@@ -17,6 +13,7 @@ new Html5QrcodeScanner(
 fps:10,
 qrbox:250
 }
+
 );
 
 scanner.render(
@@ -333,7 +330,7 @@ try{
 
 if(scanner){
 scanner.clear();
-scanner=null;
+
 }
 
 }catch(e){
