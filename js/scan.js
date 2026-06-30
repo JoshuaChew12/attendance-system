@@ -1,100 +1,119 @@
 let scanner = null;
 let scannedBranch = "";
 let isProcessing = false;
-
-// ===============================
-// INIT SCAN PAGE
-// ===============================
-function initScanPage(){
-
-scannedBranch = "";
-isProcessing = false;
-
-// SAFE DESTROY OLD SCANNER
-if(scanner){
-try{
-scanner.clear();
-}catch(e){}
-scanner = null;
-}
-
-// RESET UI
-document.getElementById("cameraPage").style.display="block";
-document.getElementById("resultPage").style.display="none";
-document.getElementById("scanResult").innerHTML="";
-
-// DELAY INIT (IMPORTANT)
-setTimeout(()=>{
-startScanner();
-},300);
-
-}
-
-// ===============================
+// =====================================================
 // START CAMERA
-// ===============================
+// =====================================================
 function startScanner(){
 
-scanner = new Html5QrcodeScanner(
+scanner =
+new Html5QrcodeScanner(
 "reader",
 {
 fps:10,
 qrbox:250
 }
+
 );
 
-scanner.render(qrSuccess);
+scanner.render(
+qrSuccess
+);
 
 }
 
-// ===============================
+// =====================================================
 // QR SUCCESS
-// ===============================
+// =====================================================
 function qrSuccess(decodedText){
 
-if(isProcessing) return;
+if(isProcessing)
+return;
 
-isProcessing = true;
+isProcessing=true;
 
-scannedBranch = decodedText;
+scannedBranch=decodedText;
 
-// STOP CAMERA SAFELY
+// STOP CAMERA FIRST
+
 stopScanner();
 
-// SWITCH UI
-document.getElementById("cameraPage").style.display="none";
-document.getElementById("resultPage").style.display="block";
+// HIDE CAMERA
 
-document.getElementById("statusIcon").innerHTML="⏳";
-document.getElementById("scanResult").innerHTML="Checking...";
+document.getElementById(
+"cameraPage"
+).style.display="none";
+
+// SHOW RESULT
+
+document.getElementById(
+"resultPage"
+).style.display="block";
+
+document.getElementById(
+"statusIcon"
+).innerHTML="⏳";
+
+document.getElementById(
+"scanResult"
+).innerHTML=
+"Checking...";
+
+// START PROCESS
 
 autoAttendance();
 
 }
 
-// ===============================
-// AUTO FLOW
-// ===============================
+// =====================================================
+// MAIN CONTROLLER
+// =====================================================
 async function autoAttendance(){
 
 try{
 
-const user = JSON.parse(localStorage.getItem("user"));
-if(!user) throw Error("User not found");
+const user =
+JSON.parse(
+localStorage.getItem("user")
+);
 
-const status = await apiGet({
+if(!user)
+throw Error(
+"User not found"
+);
+
+// CHECK TODAY STATUS
+const status =
+await apiGet({
 action:"getTodayAttendance",
 employee_id:user.employee_id
 });
 
-if(status.success && status.exists){
+if(
+status.success &&
+status.exists
+){
+
+// HAS CHECK IN
 await checkOut(user);
-}else{
+
+}
+
+else{
+// NEW CHECK IN
 await checkIn(user);
 }
 
 }catch(err){
-showResult("❌",err.message);
+
+showResult(
+
+"❌",
+
+err.message
+
+);
+
 }
 
 }
@@ -351,3 +370,15 @@ timeZone:
 isProcessing=false;
 
 }
+
+// =====================================================
+// RESTART
+// =====================================================
+function restartScanner(){
+
+location.reload();
+
+}
+
+// START
+startScanner();
