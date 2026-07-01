@@ -50,12 +50,17 @@ map[id] || "-";
 const profilePhoto = document.getElementById("profilePhoto");
 
 if(profilePhoto){
+
+profilePhoto.onerror = function(){
+this.src = "images/default.png";
+};
+
 profilePhoto.src =
 profileData.photo
 ? profileData.photo + "?t=" + Date.now()
 : "images/default.png";
-}
 
+}
 }
 
 // =====================
