@@ -139,18 +139,32 @@ formData.append("action", "uploadPhoto");
 formData.append("employee_id", user.employee_id);
 formData.append("file", blob, "photo.jpg");
 
-const response = await fetch(API_URL,{
-method:"POST",
-body:formData
+const response = await fetch(API_URL, {
+method: "POST",
+body: formData
 });
 
-const res = await response.json();
+const text = await response.text();
+
+console.log("RAW:", text);
+
+let res;
+
+try{
+res = JSON.parse(text);
+}catch(e){
+alert("Invalid JSON from server");
+return;
+}
+
+console.log("PARSED:", res);
 
 if(res.success){
 document.getElementById("profilePhoto").src = res.photo;
 alert("Photo Updated");
 }else{
-alert(res.message);
+alert(res.message || "Upload failed");
+
 }
 
 }
