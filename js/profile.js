@@ -47,11 +47,13 @@ map[id] || "-";
 
 }
 
-if(profileData.photo){
+const profilePhoto = document.getElementById("profilePhoto");
 
-profilePhoto.src=
-profileData.photo;
-
+if(profilePhoto){
+profilePhoto.src =
+profileData.photo
+? profileData.photo + "?t=" + Date.now()
+: "images/default.png";
 }
 
 }
