@@ -47,20 +47,29 @@ map[id] || "-";
 
 }
 
-const profilePhoto = document.getElementById("profilePhoto");
+const profilePhoto =
+document.getElementById("profilePhoto");
 
-if(profilePhoto){
+if(profilePhoto && profileData.photo){
 
-profilePhoto.onerror = function(){
-this.src = "images/default.png";
-};
+let photo =
+profileData.photo;
+
+// 转换 Drive URL
+if(photo.includes("drive.google.com")){
+const id =
+photo.match(/id=([^&]+)/)[1];
+
+photo =
+"https://lh3.googleusercontent.com/d/"
++ id;
+}
 
 profilePhoto.src =
-profileData.photo
-? profileData.photo + "?t=" + Date.now()
-: "images/default.png";
+photo + "?t=" + Date.now();
 
 }
+
 }
 
 // =====================
