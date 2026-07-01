@@ -63,72 +63,47 @@ function compressImage(file){
 
 return new Promise(resolve=>{
 
-const img=new Image();
-
-const canvas=document.createElement(
-"canvas"
-);
-
-const reader=new FileReader();
+const reader = new FileReader();
 
 reader.onload=e=>{
 
+const img = new Image();
+
 img.onload=()=>{
 
-const max=600;
+const canvas = document.createElement("canvas");
 
-let width=img.width;
+const maxSize = 600;
 
-let height=img.height;
+let w = img.width;
+let h = img.height;
 
-if(width>height){
-
-if(width>max){
-
-height*=max/width;
-width=max;
-
+if(w > h){
+if(w > maxSize){
+h *= maxSize / w;
+w = maxSize;
 }
-
 }else{
-
-if(height>max){
-
-width*=max/height;
-height=max;
-
+if(h > maxSize){
+w *= maxSize / h;
+h = maxSize;
+}
 }
 
-}
+canvas.width = w;
+canvas.height = h;
 
-canvas.width=width;
-canvas.height=height;
+const ctx = canvas.getContext("2d");
 
-const ctx=
-canvas.getContext("2d");
+ctx.drawImage(img,0,0,w,h);
 
-ctx.drawImage(
-img,
-0,
-0,
-width,
-height
-);
+const base64 = canvas.toDataURL("image/jpeg",0.7);
 
-resolve(
-
-canvas
-.toDataURL(
-"image/jpeg",
-0.7
-)
-.split(",")[1]
-
-);
+resolve(base64);
 
 };
 
-img.src=e.target.result;
+img.src = e.target.result;
 
 };
 
@@ -143,51 +118,39 @@ reader.readAsDataURL(file);
 // =====================
 async function uploadPhoto(){
 
-const file =
-photoInput.files[0];
+const file = document.getElementById("photoInput").files[0];
 
 if(!file){
-
-alert(
-"Select photo"
-);
-
+alert("Select photo");
 return;
-
 }
 
-const base64 =
-await compressImage(file);
+const user = JSON.parse(localStorage.getItem("user"));
 
-const user =
-JSON.parse(
-localStorage.getItem("user")
-);
+// 🔥 compress first
+const base64 = await compressImage(file);
 
-const res =
-await apiPost({
+// convert base64 → blob
+const resBlob = await fetch(base64);
+const blob = await resBlob.blob();
 
-action:"uploadPhoto",
-employee_id:
-user.employee_id,
-filename:
-"user.jpg",
-mime:
-"image/jpeg",
-file:
-base64
+const formData = new FormData();
+formData.append("action", "uploadPhoto");
+formData.append("employee_id", user.employee_id);
+formData.append("file", blob, "photo.jpg");
 
+const response = await fetch(API_URL,{
+method:"POST",
+body:formData
 });
 
+const res = await response.json();
+
 if(res.success){
-
-profilePhoto.src=
-res.photo;
-
-alert(
-"Photo Updated"
-);
-
+document.getElementById("profilePhoto").src = res.photo;
+alert("Photo Updated");
+}else{
+alert(res.message);
 }
 
 }
