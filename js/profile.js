@@ -143,46 +143,53 @@ reader.readAsDataURL(file);
 // =====================
 async function uploadPhoto(){
 
-console.log("UPLOAD CLICKED");
-
-const file = document.getElementById("photoInput").files[0];
+const file =
+photoInput.files[0];
 
 if(!file){
-alert("Please select photo");
+
+alert(
+"Select photo"
+);
+
 return;
+
 }
 
-try{
+const base64 =
+await compressImage(file);
 
-const base64 = await compressImage(file);
+const user =
+JSON.parse(
+localStorage.getItem("user")
+);
 
-console.log("COMPRESS DONE");
+const res =
+await apiPost({
 
-const user = JSON.parse(localStorage.getItem("user"));
-
-const res = await apiPost({
 action:"uploadPhoto",
-employee_id:user.employee_id,
-filename:file.name || "photo.jpg",
-mime:"image/jpeg",
-file:base64
+employee_id:
+user.employee_id,
+filename:
+"user.jpg",
+mime:
+"image/jpeg",
+file:
+base64
+
 });
 
-console.log("UPLOAD RESPONSE:", res);
-
 if(res.success){
-document.getElementById("profilePhoto").src = res.photo;
-alert("Photo Updated");
-}else{
-alert(res.message || "Upload Failed");
-}
 
-}catch(err){
+profilePhoto.src=
+res.photo;
 
-console.log("UPLOAD ERROR:", err);
-alert("Upload Error: " + err.message);
+alert(
+"Photo Updated"
+);
 
 }
+
 }
 
 // =====================
