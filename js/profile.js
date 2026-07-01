@@ -59,7 +59,7 @@ profileData.photo;
 // =====================
 // COMPRESS IMAGE
 // =====================
-function compressImage(file){
+function compressImageToBlob(file){
 
 return new Promise(resolve=>{
 
@@ -97,9 +97,12 @@ const ctx = canvas.getContext("2d");
 
 ctx.drawImage(img,0,0,w,h);
 
-const base64 = canvas.toDataURL("image/jpeg",0.7);
+// 🔥 directly output BLOB (NO BASE64)
+canvas.toBlob(blob=>{
 
-resolve(base64);
+resolve(blob);
+
+},"image/jpeg",0.75);
 
 };
 
@@ -110,7 +113,6 @@ img.src = e.target.result;
 reader.readAsDataURL(file);
 
 });
-
 }
 
 // =====================
@@ -127,17 +129,14 @@ return;
 
 const user = JSON.parse(localStorage.getItem("user"));
 
-// 🔥 compress first
-const base64 = await compressImage(file);
+// 🔥 STEP 1: compress → blob (IMPORTANT FIX)
+const compressedBlob = await compressImageToBlob(file);
 
-// convert base64 → blob
-const resBlob = await fetch(base64);
-const blob = await resBlob.blob();
-
+// STEP 2: upload
 const formData = new FormData();
 formData.append("action", "uploadPhoto");
 formData.append("employee_id", user.employee_id);
-formData.append("file", blob, "photo.jpg");
+formData.append("file", compressedBlob, "photo.jpg");
 
 const response = await fetch(API_URL, {
 method: "POST",
@@ -157,14 +156,11 @@ alert("Invalid JSON from server");
 return;
 }
 
-console.log("PARSED:", res);
-
 if(res.success){
 document.getElementById("profilePhoto").src = res.photo;
 alert("Photo Updated");
 }else{
 alert(res.message || "Upload failed");
-
 }
 
 }
