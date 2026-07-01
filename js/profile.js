@@ -163,6 +163,8 @@ localStorage.getItem("user")
 const base64 =
 await compressImage(file);
 
+console.log(base64.substring(0,50));
+
 const res =
 await apiPost({
 action:"uploadPhoto",
