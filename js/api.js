@@ -1,60 +1,39 @@
 async function apiPost(data){
 
-  const token=localStorage.getItem("token");
+  const token = localStorage.getItem("token");
+  if(token && data.action!="login") data.token = token;
 
-  if(token && data.action!="login")
-  data.token=token;
-  
-  const formData = new URLSearchParams();
-
-  for(let key in data){
-    formData.append(key, data[key]);
-  }
-
-  const response = await fetch(API_URL, {
-    method: "POST",
-    body: formData
+  const res = await fetch(API_URL,{
+    method:"POST",
+    body:new URLSearchParams(data)
   });
 
-  if(result.message=="Unauthorized"){
-  localStorage.clear();
-  window.location.href="index.html";
-  return;
-  }
-  
-  return await response.json();
+  const result = await res.json();
 
+  if(result.message=="Unauthorized"){
+    localStorage.clear();
+    window.location.href="index.html";
+    return;
+  }
+
+  return result;
 }
 
 
 async function apiGet(params){
 
-  const token=localStorage.getItem("token");
+  const token = localStorage.getItem("token");
+  if(token) params.token = token;
 
-  if(token)
-  params.token=token;
-  
-  const query = new URLSearchParams(params);
-
-  const url = API_URL + "?" + query;
-
-  console.log("FETCH URL:", url);
-
-  const response = await fetch(url, {
-    method: "GET",
-    redirect: "follow"
-  });
-
-  const text = await response.text();
-
-  console.log("RAW RESPONSE:", text);
+  const res = await fetch(API_URL+"?"+new URLSearchParams(params));
+  const text = await res.text();
+  const result = JSON.parse(text);
 
   if(result.message=="Unauthorized"){
-  localStorage.clear();
-  window.location.href="index.html";
-  return;
+    localStorage.clear();
+    window.location.href="index.html";
+    return;
   }
-  
-  return JSON.parse(text);
 
+  return result;
 }
