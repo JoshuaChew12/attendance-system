@@ -102,8 +102,6 @@ const status =
 await apiGet({
 action:
 "getTodayAttendance",
-employee_id:
-user.employee_id
 });
 
 if(
@@ -151,8 +149,6 @@ await getLocation();
 const result =
 await apiPost({
 action:"checkIn",
-employee_id:
-user.employee_id,
 branch_id:
 scannedBranch,
 lat:
@@ -208,8 +204,6 @@ await getLocation();
 const result =
 await apiPost({
 action:"checkOut",
-employee_id:
-user.employee_id,
 lat:
 gps.lat,
 lng:
