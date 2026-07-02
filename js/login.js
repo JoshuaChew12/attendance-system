@@ -42,6 +42,10 @@ localStorage.setItem(
 JSON.stringify(result.user)
 );
 
+localStorage.setItem(
+"token",
+result.token
+);
 
 window.location.href=
 "app.html";
