@@ -1,63 +1,35 @@
 async function login(){
 
-const username =
-document.getElementById("username").value;
+const username=document.getElementById("username").value;
+const password=document.getElementById("password").value;
 
-
-const password =
-document.getElementById("password").value;
-
-
-console.log(
-"send:",
+const res=await apiPost({
+action:"login",
 username,
 password
-);
-
-
-const result =
-await apiPost({
-
-action:"login",
-
-username:username,
-
-password:password
-
 });
 
+// ❌ invalid login
+if(!res.success && !res.firstLogin){
+document.getElementById("msg").innerHTML=res.message;
+return;
+}
 
-console.log(
-"response:",
-result
-);
+// 🚨 FIRST TIME LOGIN
+if(res.firstLogin){
 
+localStorage.setItem("temp_emp",res.employee_id);
 
+window.location.href="firstLogin.html";
 
-if(result.success){
-
-
-localStorage.setItem(
-"user",
-JSON.stringify(result.user)
-);
-
-localStorage.setItem(
-"token",
-result.token
-);
-
-window.location.href=
-"app.html";
-
-
-}else{
-
-
-document.getElementById("msg").innerHTML=
-result.message;
-
+return;
 
 }
+
+// ✅ NORMAL LOGIN
+localStorage.setItem("user",JSON.stringify(res.user));
+localStorage.setItem("token",res.token);
+
+window.location.href="app.html";
 
 }
