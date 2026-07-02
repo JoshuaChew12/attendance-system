@@ -8,18 +8,14 @@ const confirm=document.getElementById("confirmPass").value.trim();
 
 const msg=document.getElementById("msg");
 
-if(!empId||!tempPass||!user||!pass){
-
+if(!empId||!tempPass||!user||!pass||!confirm){
 msg.innerHTML="Please fill all fields";
 return;
-
 }
 
-if(pass!==confirm){
-
+if(pass!=confirm){
 msg.innerHTML="Password not match";
 return;
-
 }
 
 const res=await apiPost({
@@ -34,13 +30,11 @@ password:pass
 
 if(res.success){
 
-msg.innerHTML="Account created successfully. Please login.";
+localStorage.removeItem("temp_emp");
 
-setTimeout(()=>{
+alert("Account created successfully.Please login.");
 
 window.location.href="index.html";
-
-},1500);
 
 }else{
 
@@ -49,3 +43,15 @@ msg.innerHTML=res.message;
 }
 
 }
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+const emp=localStorage.getItem("temp_emp");
+
+if(emp){
+
+document.getElementById("empId").value=emp;
+
+}
+
+});
