@@ -14,8 +14,7 @@ if(!user) return;
 
 const res =
 await apiGet({
-action:"getProfile",
-employee_id:user.employee_id
+action:"getProfile"
 });
 
 if(!res.success) return;
@@ -184,8 +183,6 @@ console.log(base64.substring(0,50));
 const res =
 await apiPost({
 action:"uploadPhoto",
-employee_id:
-user.employee_id,
 file:
 base64
 });
