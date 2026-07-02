@@ -12,9 +12,7 @@ if(!user) return;
 
 const res =
 await apiGet({
-action:"getProfile",
-employee_id:
-user.employee_id
+action:"getProfile"
 });
 
 if(!res.success)
@@ -45,9 +43,6 @@ const res =
 await apiPost({
 
 action:"updateProfile",
-
-employee_id:
-user.employee_id,
 
 phone:
 phone.value,
