@@ -64,7 +64,6 @@ try{
 const today =
 await apiGet({
 action:"getTodayAttendance",
-employee_id:user.employee_id
 });
 
 if(
