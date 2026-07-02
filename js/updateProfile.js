@@ -1,6 +1,3 @@
-// =====================
-// LOAD DATA
-// =====================
 async function loadUpdateProfile(){
 
 const user =
