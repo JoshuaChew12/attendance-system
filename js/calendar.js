@@ -45,8 +45,6 @@ const res =
 await apiGet({
 action:
 "getMonthlyAttendance",
-employee_id:
-user.employee_id,
 month:
 formatMonth(currentMonth)
 
@@ -219,8 +217,6 @@ await apiGet({
 
 action:
 "getAttendanceByDate",
-employee_id:
-user.employee_id,
 date:date
 
 });
