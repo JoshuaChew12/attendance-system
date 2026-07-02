@@ -216,11 +216,18 @@ res.message
 // =====================
 // LOGOUT
 // =====================
-function logout(){
+async function logout(){
+
+try{
+
+await apiPost({
+action:"logout"
+});
+
+}catch(e){}
 
 localStorage.clear();
 
-window.location.href=
-"index.html";
+window.location.href="index.html";
 
 }
