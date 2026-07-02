@@ -21,8 +21,6 @@ localStorage.getItem("user")
 const res =
 await apiPost({
 action:"changePassword",
-employee_id:
-user.employee_id,
 oldPassword:
 oldPassword.value,
 newPassword:
