@@ -1,322 +1,107 @@
-let currentMonth =
-new Date()
-.toISOString()
-.slice(0,7);
+window.currentMonth=window.currentMonth||
+new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Kuala_Lumpur"}).slice(0,7);
 
-let calendarData=[];
+window.calendarData=[];
 
-// =====================================================
-// FORMAT MONTH
-// =====================================================
 function formatMonth(m){
-
 const p=m.split("-");
-
-return p[0]+"-"+
-String(p[1]).padStart(2,"0");
-
+return p[0]+"-"+String(p[1]).padStart(2,"0");
 }
 
-// =====================================================
-// LOAD CALENDAR
-// =====================================================
 async function loadCalendar(){
+const user=JSON.parse(localStorage.getItem("user"));
+if(!user) return;
 
-const user =
-JSON.parse(
-localStorage.getItem("user")
-);
+const set=(id,v)=>{const el=document.getElementById(id);if(el)el.innerHTML=v};
 
-if(!user)
-return;
-
-document.getElementById(
-"monthTitle"
-).innerHTML =
-formatMonth(currentMonth);
+set("monthTitle",formatMonth(currentMonth));
 
 try{
-
-const res =
-await apiGet({
-action:
-"getMonthlyAttendance",
-month:
-formatMonth(currentMonth)
-
+const res=await apiGet({
+action:"getMonthlyAttendance",
+month:formatMonth(currentMonth),
+employee_id:user.employee_id
 });
 
 if(res.success){
-
-calendarData =
-res.data || [];
-
+calendarData=res.data||[];
 renderCalendar();
-
+}
+}catch(e){
+set("calendarGrid","API Error");
+}
 }
 
-}catch(err){
-
-console.log(
-"Calendar Error",
-err
-);
-
-document.getElementById(
-"calendarGrid"
-).innerHTML=
-
-"API Error";
-
-}
-
-}
-
-// =====================================================
-// RENDER CALENDAR
-// =====================================================
 function renderCalendar(){
-
-const grid =
-document.getElementById(
-"calendarGrid"
-);
-
+const grid=document.getElementById("calendarGrid");
+if(!grid) return;
 grid.innerHTML="";
 
-const year =
-Number(
-currentMonth.split("-")[0]
-);
+const [y,m]=currentMonth.split("-").map(Number);
+const first=new Date(y,m-1,1).getDay();
+const days=new Date(y,m,0).getDate();
 
-const month =
-Number(
-currentMonth.split("-")[1]
-);
-
-// first day
-
-const firstDay =
-new Date(
-year,
-month-1,
-1
-)
-.getDay();
-
-// days
-
-const totalDays =
-new Date(
-year,
-month,
-0
-)
-.getDate();
-
-// empty before day 1
-
-for(
-let i=0;
-i<firstDay;
-i++
-){
-
-const empty=
-document.createElement("div");
-
-empty.className="day empty";
-
-grid.appendChild(empty);
-
+for(let i=0;i<first;i++){
+const d=document.createElement("div");
+d.className="day empty";
+grid.appendChild(d);
 }
 
-// dates
+for(let i=1;i<=days;i++){
+const date=`${currentMonth}-${String(i).padStart(2,"0")}`;
+const r=calendarData.find(x=>x.date===date);
 
-for(
-let i=1;
-i<=totalDays;
-i++
-){
+const d=document.createElement("div");
+d.className="day";
+d.innerHTML=i;
 
-const date =
-
-`${currentMonth}-${String(i).padStart(2,"0")}`;
-
-const record =
-
-calendarData.find(
-
-d=>d.date===date
-
-);
-
-const div =
-document.createElement("div");
-
-div.className="day";
-
-div.innerHTML=i;
-
-if(record){
-
-if(record.status=="Present"){
-
-div.classList.add(
-"present-day"
-);
-
+if(r){
+if(r.status=="Present")d.classList.add("present-day");
+else if(r.status=="Late")d.classList.add("late-day");
+else if(r.status=="Absent")d.classList.add("absent-day");
 }
 
-else if(record.status=="Late"){
-
-div.classList.add(
-"late-day"
-);
-
+d.onclick=()=>showDetail(date);
+grid.appendChild(d);
+}
 }
 
-else if(record.status=="Absent"){
-
-div.classList.add(
-"absent-day"
-);
-
-}
-
-}
-
-div.onclick=()=>{
-
-showDetail(date);
-
-};
-
-grid.appendChild(div);
-
-}
-  
-}
-
-// =====================================================
-// DETAIL
-// =====================================================
 async function showDetail(date){
+const user=JSON.parse(localStorage.getItem("user"));
 
-const user =
-JSON.parse(
-localStorage.getItem("user")
-);
-
-const res =
-await apiGet({
-
-action:
-"getAttendanceByDate",
-date:date
-
+const res=await apiGet({
+action:"getAttendanceByDate",
+date:date,
+employee_id:user.employee_id
 });
 
-const box =
-document.getElementById(
-"detailBox"
-);
+const box=document.getElementById("detailBox");
+if(!box) return;
 
-if(
-res.success &&
-res.data
-){
-
+if(res.success&&res.data){
 const d=res.data;
-
 box.innerHTML=`
-
-<h3>
-${d.date}
-</h3>
-
-<p>
-<b>Day:</b>
-${d.day}
-</p>
-
-<p>
-<b>Check In:</b>
-${d.checkIn || "-"}
-</p>
-
-<p>
-<b>Check Out:</b>
-${d.checkOut || "-"}
-</p>
-
-<p>
-<b>Work Hours:</b>
-${d.workHours || 0}
-hrs
-</p>
-
-<p>
-<b>Late:</b>
-${d.lateMinutes || 0}
-min
-</p>
-
-<p>
-<b>Status:</b>
-${d.status || "-"}
-</p>
-
+<h3>${d.date}</h3>
+<p><b>Day:</b>${d.day}</p>
+<p><b>Check In:</b>${d.checkIn||"-"}</p>
+<p><b>Check Out:</b>${d.checkOut||"-"}</p>
+<p><b>Work Hours:</b>${d.workHours||0} hrs</p>
+<p><b>Late:</b>${d.lateMinutes||0} min</p>
+<p><b>Status:</b>${d.status||"-"}</p>
 `;
-
+}else box.innerHTML="No Attendance Record";
 }
 
-else{
-box.innerHTML=
-"No Attendance Record";
-}
-
-}
-
-// =====================================================
-// MONTH CONTROL
-// =====================================================
 function prevMonth(){
-
-let d =
-new Date(
-currentMonth+"-01"
-);
-
-d.setMonth(
-d.getMonth()-1
-);
-
-currentMonth =
-
-d.toISOString()
-.slice(0,7);
-
+const d=new Date(currentMonth+"-01");
+d.setMonth(d.getMonth()-1);
+currentMonth=d.toISOString().slice(0,7);
 loadCalendar();
-
 }
 
 function nextMonth(){
-
-let d =
-new Date(
-currentMonth+"-01"
-);
-
-d.setMonth(
-d.getMonth()+1
-);
-
-currentMonth =
-
-d.toISOString()
-.slice(0,7);
-
+const d=new Date(currentMonth+"-01");
+d.setMonth(d.getMonth()+1);
+currentMonth=d.toISOString().slice(0,7);
 loadCalendar();
-
 }
