@@ -9,8 +9,6 @@ username,
 password
 });
 
-console.log("LOGIN RAW RES:", res);
-
 // ❌ invalid login
 if(!res.success && !res.firstLogin){
 document.getElementById("msg").innerHTML=res.message;
