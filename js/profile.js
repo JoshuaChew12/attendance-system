@@ -1,27 +1,17 @@
-let profileData={};
-// =====================
-// LOAD PROFILE
-// =====================
+window.profileData=window.profileData||{};
+
 async function loadProfile(){
-
-const user =
-JSON.parse(
-localStorage.getItem("user")
-);
-
+const user=JSON.parse(localStorage.getItem("user"));
 if(!user) return;
 
-const res =
-await apiGet({
-action:"getProfile"
-});
-
+const res=await apiGet({action:"getProfile"});
 if(!res.success) return;
 
-profileData=res.data;
+window.profileData=res.data;
 
-const map={
+const set=(id,v)=>{const el=document.getElementById(id);if(el)el.innerHTML=v||"-"};
 
+const m={
 name:profileData.name,
 employeeID:profileData.employee_id,
 mykad:profileData.mykad,
@@ -34,196 +24,63 @@ department:profileData.department,
 branch:profileData.branch_name,
 joinDate:profileData.join_date,
 role:profileData.role
-
 };
 
-for(let id in map){
-
-document.getElementById(id)
-.innerHTML =
-map[id] || "-";
-
-}
-
-const profilePhoto =
-document.getElementById("profilePhoto");
-
-if(profilePhoto && profileData.photo){
-
-let photo =
-profileData.photo;
-
-// 转换 Drive URL
-if(photo.includes("drive.google.com")){
-const id =
-photo.match(/id=([^&]+)/)[1];
-
-photo =
-"https://lh3.googleusercontent.com/d/"
-+ id;
-}
-
-profilePhoto.src =
-photo + "?t=" + Date.now();
-
-}
-
-}
-
-// =====================
-// COMPRESS IMAGE
-// =====================
-function compressImage(file){
-
-return new Promise((resolve,reject)=>{
-
-const reader = new FileReader();
-
-reader.onload = function(e){
-
-const img = new Image();
-
-img.onload = function(){
-
-const canvas =
-document.createElement("canvas");
-
-const maxSize = 600;
-
-let width = img.width;
-let height = img.height;
-
-// =====================
-// Resize
-// =====================
-if(width > height){
-
-if(width > maxSize){
-height =
-height * maxSize / width;
-width = maxSize;
-}
-
-}else{
-
-if(height > maxSize){
-width =
-width * maxSize / height;
-height = maxSize;
-}
-
-}
-// =====================
-// Canvas
-// =====================
-canvas.width = width;
-canvas.height = height;
-
-const ctx =
-canvas.getContext("2d");
-
-ctx.drawImage(
-img,
-0,
-0,
-width,
-height
-);
-
-// =====================
-// Compress JPEG
-// =====================
-const base64 =
-canvas.toDataURL(
-"image/jpeg",
-0.75
-);
-
-resolve(base64);
-
-};
-
-img.onerror = reject;
-img.src = e.target.result;
-
-};
-
-reader.onerror = reject;
-reader.readAsDataURL(file);
-
+Object.keys(m).forEach(k=>{
+const el=document.getElementById(k);
+if(el) el.innerHTML=m[k]||"-";
 });
 
+const img=document.getElementById("profilePhoto");
+if(img&&profileData.photo){
+let p=profileData.photo;
+if(p.includes("drive.google.com")){
+const id=(p.match(/id=([^&]+)/)||[])[1];
+if(id) p="https://lh3.googleusercontent.com/d/"+id;
+}
+img.src=p+"?t="+Date.now();
+}
 }
 
-// =====================
-// UPLOAD PHOTO
-// =====================
 async function uploadPhoto(){
+const file=document.getElementById("photoInput").files[0];
+if(!file) return alert("Select photo");
 
-const file =
-document.getElementById("photoInput").files[0];
+const user=JSON.parse(localStorage.getItem("user"));
 
-if(!file){
-alert("Select photo");
-return;
-}
-
-const user =
-JSON.parse(
-localStorage.getItem("user")
-);
-
-// compress
-const base64 =
-await compressImage(file);
-
-console.log(base64.substring(0,50));
-
-const res =
-await apiPost({
-action:"uploadPhoto",
-file:
-base64
+const base64=await new Promise((res,rej)=>{
+const r=new FileReader();
+r.onload=e=>{
+const img=new Image();
+img.onload=()=>{
+const c=document.createElement("canvas");
+let w=img.width,h=img.height,mx=600;
+if(w>h){if(w>mx){h=h*mx/w;w=mx;} }
+else{if(h>mx){w=w*mx/h;h=mx;} }
+c.width=w;c.height=h;
+c.getContext("2d").drawImage(img,0,0,w,h);
+res(c.toDataURL("image/jpeg",0.75));
+};
+img.src=e.target.result;
+};
+r.readAsDataURL(file);
 });
 
-console.log(res);
+const res=await apiPost({
+action:"uploadPhoto",
+employee_id:user.employee_id,
+file:base64
+});
 
 if(res.success){
-
-document.getElementById(
-"profilePhoto"
-).src =
-res.photo;
-
-alert(
-"Photo Updated"
-);
-
-}else{
-
-alert(
-res.message
-);
-
+const img=document.getElementById("profilePhoto");
+if(img) img.src=res.photo;
+alert("Photo Updated");
+}else alert(res.message);
 }
 
-}
-
-// =====================
-// LOGOUT
-// =====================
 async function logout(){
-
-try{
-
-await apiPost({
-action:"logout"
-});
-
-}catch(e){}
-
+try{await apiPost({action:"logout"});}catch(e){}
 localStorage.clear();
-
 window.location.href="index.html";
-
 }
