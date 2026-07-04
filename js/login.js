@@ -3,11 +3,18 @@ async function login(){
 const username=document.getElementById("username").value;
 const password=document.getElementById("password").value;
 
-const res=await apiPost({
-action:"login",
-username,
-password
+const res = await apiPost({
+  action:"login",
+  username,
+  password
 });
+
+console.log("LOGIN FULL RESPONSE:",res);
+
+if(res.success){
+  console.log("TOKEN:",res.token);
+  console.log("USER:",res.user);
+}
 
 // ❌ invalid login
 if(!res.success && !res.firstLogin){
