@@ -1,35 +1,36 @@
 async function login(){
 
-const username=document.getElementById("username").value;
-const password=document.getElementById("password").value;
+const msg=document.getElementById("msg");
+
+msg.innerHTML="";
+
+const username=document.getElementById("username").value.trim();
+const password=document.getElementById("password").value.trim();
+
+if(!username||!password){
+msg.innerHTML="Please enter username and password";
+return;
+}
 
 const res=await apiPost({
+
 action:"login",
 username,
 password
+
 });
 
-// ❌ invalid login
-if(!res.success && !res.firstLogin){
-document.getElementById("msg").innerHTML=res.message;
+if(!res.success){
+msg.innerHTML=res.message;
 return;
 }
 
-// 🚨 FIRST TIME LOGIN
-if(res.firstLogin){
-
-localStorage.setItem("temp_emp",res.employee_id);
-
-window.location.href="firstLogin.html";
-
-return;
-
-}
-
-// ✅ NORMAL LOGIN
 localStorage.setItem("user",JSON.stringify(res.user));
 localStorage.setItem("token",res.token);
 
-window.location.href="app.html";
-
+location.href="app.html";
 }
+
+document.addEventListener("keydown",e=>{
+if(e.key=="Enter") login();
+});
