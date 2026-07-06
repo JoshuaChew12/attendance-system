@@ -1,7 +1,6 @@
 async function login(){
 
 const msg=document.getElementById("msg");
-
 msg.innerHTML="";
 
 const username=document.getElementById("username").value.trim();
