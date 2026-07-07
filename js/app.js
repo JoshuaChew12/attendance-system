@@ -118,6 +118,13 @@ await loadUpdateProfile();
 
 }
 
+report:async()=>{
+
+if(typeof loadReport==="function")
+await loadReport();
+
+}
+
 };
 
 // START APP
