@@ -594,3 +594,93 @@ font-size:14px;
 }
 
 }
+
+/* ==========================
+REPORT
+========================== */
+
+.report-page{
+
+padding:20px;
+
+}
+
+.page-title{
+
+margin-bottom:20px;
+
+}
+
+.report-card,
+.summary-card,
+.report-item{
+
+background:white;
+padding:18px;
+border-radius:18px;
+box-shadow:
+0 4px 12px rgba(0,0,0,.08);
+margin-bottom:18px;
+
+}
+
+.report-card label{
+
+display:block;
+margin:10px 0 6px;
+
+}
+
+.report-card input,
+.report-card select{
+
+width:100%;
+padding:12px;
+border:1px solid #ddd;
+border-radius:12px;
+margin-bottom:12px;
+
+}
+
+.report-card button{
+
+width:100%;
+padding:14px;
+border:none;
+border-radius:14px;
+background:#2563eb;
+color:white;
+font-size:16px;
+
+}
+
+.summary-card{
+
+display:grid;
+grid-template-columns:
+repeat(4,1fr);
+text-align:center;
+
+}
+
+.summary-card p{
+
+margin:0;
+font-size:13px;
+color:#666;
+
+}
+
+.summary-card h2{
+
+margin:8px 0 0;
+
+}
+
+.report-empty{
+
+text-align:center;
+padding:40px;
+color:#777;
+
+}
