@@ -1,20 +1,29 @@
 <div class="home-page">
 
-<!-- Welcome Card -->
 <div class="welcome-card">
 
-<h2>
-Hello, <span id="employeeName">---</span> 👋
+<p id="greeting">
+Good Morning
+</p>
+
+<h2 id="employeeName">
+---
 </h2>
 
 <p>
-Branch:
-<span id="branchName">---</span>
+📍 <span id="branchName">---</span>
+</p>
+
+<h1 id="liveClock">
+00:00:00
+</h1>
+
+<p id="todayDate">
+----
 </p>
 
 </div>
 
-<!-- Attendance Card -->
 <div class="attendance-card">
 
 <h3>
@@ -25,72 +34,62 @@ Today's Attendance
 
 <div>
 
-<p>
-CHECK IN
-</p>
+<p>CHECK IN</p>
 
-<h2 id="checkIn">
---:--
-</h2>
+<h2 id="checkIn">--:--</h2>
 
 </div>
 
 <div>
 
-<p>
-CHECK OUT
-</p>
+<p>CHECK OUT</p>
 
-<h2 id="checkOut">
---:--
-</h2>
+<h2 id="checkOut">--:--</h2>
 
 </div>
 
 </div>
 
+<div class="progress">
+
+<div id="progressBar"></div>
+
 </div>
 
-<!-- Dashboard Stats -->
+</div>
+
 <div class="stats">
 
 <div class="stat-card">
 
-<p>
-Present
-</p>
+<p>Present</p>
 
-<h1 id="present">
-0
-</h1>
+<h1 id="present">0</h1>
 
 </div>
 
 <div class="stat-card">
 
-<p>
-Late
-</p>
+<p>Late</p>
 
-<h1 id="late">
-0
-</h1>
+<h1 id="late">0</h1>
 
 </div>
 
 </div>
 
-<!-- Status -->
-<div class="attendance-card"
-style="margin-top:20px;">
+<div class="attendance-card">
 
-<h3>
-Status
-</h3>
+<h3>Status</h3>
 
 <h2 id="statusText">
 Loading...
 </h2>
+
+<p id="statusEmoji"
+style="font-size:42px;text-align:center;">
+⏳
+</p>
 
 </div>
 
