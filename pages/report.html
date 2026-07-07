@@ -4,19 +4,15 @@
 
 <div class="report-filter">
 
-<input
-type="date"
-id="fromDate">
+<input type="date" id="fromDate">
 
-<input
-type="date"
-id="toDate">
+<input type="date" id="toDate">
 
 <div id="employeeBox"></div>
 
-<button onclick="loadReport()">
-Search
-</button>
+<button onclick="searchReport()">Search</button>
+
+<button onclick="exportCSV()">Export CSV</button>
 
 </div>
 
@@ -45,5 +41,5 @@ Search
 </div>
 
 <div id="reportResult"></div>
-  
+
 </div>
