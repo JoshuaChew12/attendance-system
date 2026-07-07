@@ -598,90 +598,36 @@ font-size:14px;
 /* ==========================
 REPORT
 ========================== */
-
 .report-page{
 
-padding:20px;
+padding-bottom:90px;
 
 }
 
-.page-title{
+.report-filter{
 
+display:grid;
+gap:12px;
 margin-bottom:20px;
 
 }
 
-.report-card,
-.summary-card,
-.report-item{
+.report-filter input,
+.report-filter button{
 
-background:white;
-padding:18px;
-border-radius:18px;
-box-shadow:
-0 4px 12px rgba(0,0,0,.08);
-margin-bottom:18px;
-
-}
-
-.report-card label{
-
-display:block;
-margin:10px 0 6px;
-
-}
-
-.report-card input,
-.report-card select{
-
-width:100%;
-padding:12px;
-border:1px solid #ddd;
+height:45px;
 border-radius:12px;
-margin-bottom:12px;
+border:1px solid #ddd;
+padding:0 12px;
+font-size:15px;
 
 }
 
-.report-card button{
+.report-filter button{
 
-width:100%;
-padding:14px;
-border:none;
-border-radius:14px;
 background:#2563eb;
-color:white;
-font-size:16px;
-
-}
-
-.summary-card{
-
-display:grid;
-grid-template-columns:
-repeat(4,1fr);
-text-align:center;
-
-}
-
-.summary-card p{
-
-margin:0;
-font-size:13px;
-color:#666;
-
-}
-
-.summary-card h2{
-
-margin:8px 0 0;
-
-}
-
-.report-empty{
-
-text-align:center;
-padding:40px;
-color:#777;
+color:#fff;
+border:none;
 
 }
 
@@ -690,15 +636,15 @@ color:#777;
 display:grid;
 grid-template-columns:repeat(2,1fr);
 gap:15px;
-margin:20px 0;
+margin-bottom:20px;
 
 }
 
 .summary-card{
 
 background:#fff;
-border-radius:18px;
 padding:18px;
+border-radius:18px;
 text-align:center;
 box-shadow:0 4px 12px rgba(0,0,0,.08);
 
@@ -707,8 +653,8 @@ box-shadow:0 4px 12px rgba(0,0,0,.08);
 .summary-card p{
 
 margin:0;
-color:#666;
-font-size:14px;
+font-size:13px;
+color:#777;
 
 }
 
@@ -723,15 +669,63 @@ color:#2563eb;
 .report-card{
 
 background:#fff;
-padding:16px;
-margin-bottom:15px;
+padding:15px;
 border-radius:18px;
+margin-bottom:15px;
 box-shadow:0 4px 12px rgba(0,0,0,.08);
+
+}
+
+.report-head{
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+cursor:pointer;
 
 }
 
 .report-card p{
 
-margin:6px 0;
+margin:8px 0;
+
+}
+
+.badge{
+
+padding:5px 12px;
+border-radius:20px;
+font-size:12px;
+color:#fff;
+
+}
+
+.present{
+
+background:#16a34a;
+
+}
+
+.late{
+
+background:#eab308;
+
+color:#222;
+
+}
+
+.absent{
+
+background:#dc2626;
+
+}
+
+@media(max-width:480px){
+
+.report-summary{
+
+grid-template-columns:1fr 1fr;
+
+}
 
 }
