@@ -111,25 +111,14 @@ scale(.9);
 .welcome-card{
 
 background:
+linear-gradient(135deg,#2563eb,#4f46e5);
 
-linear-gradient(
-135deg,
-#2563eb,
-#4f46e5
-);
-
-color:white;
-padding:25px;
-border-radius:25px;
+color:#fff;
+padding:28px;
+border-radius:28px;
 margin-bottom:20px;
-box-shadow:
-0 10px 25px rgba(37,99,235,.25);
-
-}
-
-.welcome-card h2{
-
-margin:0 0 10px 0;
+box-shadow:0 15px 35px rgba(37,99,235,.28);
+animation:fadeUp .4s;
 
 }
 
@@ -137,6 +126,72 @@ margin:0 0 10px 0;
 
 margin:0;
 opacity:.9;
+
+}
+
+.welcome-card h2{
+
+margin:8px 0;
+font-size:28px;
+
+}
+
+@keyframes fadeUp{
+
+from{
+
+opacity:0;
+transform:translateY(18px);
+
+}
+
+to{
+
+opacity:1;
+transform:none;
+
+}
+
+}
+
+#liveClock{
+
+font-size:38px;
+font-weight:700;
+margin:15px 0 5px;
+
+}
+
+#todayDate{
+
+font-size:14px;
+opacity:.9;
+
+}
+
+.progress{
+
+margin-top:25px;
+height:12px;
+background:#e5e7eb;
+border-radius:20px;
+overflow:hidden;
+
+}
+
+#progressBar{
+
+width:0;
+height:100%;
+border-radius:20px;
+background:
+linear-gradient(
+90deg,
+#22c55e,
+#2563eb
+);
+
+transition:.4s;
 
 }
 
