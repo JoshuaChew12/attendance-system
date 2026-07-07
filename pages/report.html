@@ -1,108 +1,49 @@
-<div class="report-page page-animation">
+<div class="report-page">
 
-<div class="page-title">
 <h2>Attendance Report</h2>
-</div>
 
-<div class="report-card">
-
-<label>From Date</label>
+<div class="report-filter">
 
 <input
 type="date"
 id="fromDate">
 
-<label>To Date</label>
-
 <input
 type="date"
 id="toDate">
 
-<label>Status</label>
+<div id="employeeBox"></div>
 
-<select id="status">
-
-<option value="">
-All
-</option>
-
-<option>
-Present
-</option>
-
-<option>
-Late
-</option>
-
-</select>
-
-<div id="employeeBox"
-style="display:none">
-
-<label>Employee</label>
-
-<select id="employee">
-
-<option value="">
-All Employees
-</option>
-
-</select>
-
-</div>
-
-<button onclick="searchReport()">
+<button onclick="loadReport()">
 Search
 </button>
 
 </div>
 
+<div class="report-summary">
+
 <div class="summary-card">
-
-<div>
-
-<p>Total</p>
-
-<h2 id="totalRecord">
-0
-</h2>
-
-</div>
-
-<div>
-
 <p>Present</p>
-
-<h2 id="presentCount">
-0
-</h2>
-
+<h2 id="sumPresent">0</h2>
 </div>
 
-<div>
-
+<div class="summary-card">
 <p>Late</p>
-
-<h2 id="lateCount">
-0
-</h2>
-
+<h2 id="sumLate">0</h2>
 </div>
 
-<div>
+<div class="summary-card">
+<p>Total Hours</p>
+<h2 id="sumHours">0</h2>
+</div>
 
-<p>Hours</p>
-
-<h2 id="totalHours">
-0
-</h2>
-
+<div class="summary-card">
+<p>Average</p>
+<h2 id="sumAverage">0</h2>
 </div>
 
 </div>
 
-<div id="reportList">
-
-</div>
-
+<div id="reportResult"></div>
+  
 </div>
