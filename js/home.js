@@ -1,25 +1,121 @@
+window.homeClock=null;
+
+function startClock(){
+
+clearInterval(window.homeClock);
+
+const update=()=>{
+
+const now=new Date();
+
+const t=now.toLocaleTimeString("en-GB");
+
+const d=now.toLocaleDateString("en-GB",{
+
+weekday:"long",
+day:"2-digit",
+month:"long",
+year:"numeric"
+
+});
+
+const c=document.getElementById("liveClock");
+const x=document.getElementById("todayDate");
+
+if(c)c.innerHTML=t;
+if(x)x.innerHTML=d;
+
+};
+
+update();
+
+window.homeClock=setInterval(update,1000);
+
+}
+
 async function loadHome(){
+
+startClock();
+
 const user=JSON.parse(localStorage.getItem("user"));
-if(!user) return;
+if(!user)return;
 
-const set=(id,val)=>{const el=document.getElementById(id);if(el)el.innerHTML=val};
+const set=(i,v)=>{
+const e=document.getElementById(i);
+if(e)e.innerHTML=v;
+};
 
-set("employeeName",user.employee_name||user.employee_id);
-set("branchName",user.branch_name||user.branch_id);
+const h=new Date().getHours();
+
+set("greeting",
+h<12?"☀ Good Morning":
+h<18?"🌤 Good Afternoon":
+"🌙 Good Evening");
+
+set("employeeName",user.employee_name);
+set("branchName",user.branch_name);
 
 try{
-const dash=await apiGet({action:"getDashboard",branch:user.branch_id});
-if(dash.success){set("present",dash.data.present);set("late",dash.data.late);}
-}catch(e){console.log(e);}
+
+const dash=await apiGet({
+action:"getDashboard",
+branch:user.branch_id
+});
+
+if(dash.success){
+
+set("present",dash.data.present);
+set("late",dash.data.late);
+
+}
+
+}catch(e){}
 
 try{
-const today=await apiGet({action:"getTodayAttendance"});
-const r=today.record||{};
+
+const t=await apiGet({
+action:"getTodayAttendance"
+});
+
+const r=t.record||{};
+
 set("checkIn",r.checkIn||"--:--");
 set("checkOut",r.checkOut||"--:--");
-set("statusText",!today.exists?"Not Started":(r.checkOut?"Completed":"Working"));
+
+let text="Not Started";
+let icon="⏳";
+let p=0;
+
+if(t.exists){
+
+text="Working";
+icon="💼";
+p=50;
+
+if(r.checkOut){
+
+text="Completed";
+icon="✅";
+p=100;
+
+}
+
+}
+
+if(r.status=="Late")
+icon="⚠";
+
+set("statusText",text);
+set("statusEmoji",icon);
+
+const bar=document.getElementById("progressBar");
+if(bar)
+bar.style.width=p+"%";
+
 }catch(e){
+
 set("statusText","Error");
+
 }
 
 }
