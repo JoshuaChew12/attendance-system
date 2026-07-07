@@ -116,7 +116,7 @@ updateProfile:async()=>{
 if(typeof loadUpdateProfile==="function")
 await loadUpdateProfile();
 
-}
+},
 
 report:async()=>{
 
