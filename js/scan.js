@@ -149,7 +149,7 @@ await getLocation();
 const result =
 await apiPost({
 action:"checkIn",
-qr:
+branch_id:
 scannedBranch,
 lat:
 gps.lat,
