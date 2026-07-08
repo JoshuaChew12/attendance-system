@@ -1,5 +1,5 @@
 let qrScanner = null;
-let scannedBranch = "";
+let scannedQR = "";
 let isProcessing = false;
 
 // =====================================================
@@ -149,8 +149,8 @@ await getLocation();
 const result =
 await apiPost({
 action:"checkIn",
-branch_id:
-scannedBranch,
+qr:
+scannedQR,
 lat:
 gps.lat,
 lng:
