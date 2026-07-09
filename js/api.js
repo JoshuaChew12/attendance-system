@@ -26,7 +26,8 @@ async function apiGet(params){
   if(token) params.token = token;
 
   const res = await fetch(API_URL+"?"+new URLSearchParams(params));
-  const result = await res.json();
+  const text = await res.text();
+  const result = JSON.parse(text);
 
   if(result.message=="Unauthorized"){
     localStorage.clear();
