@@ -5,11 +5,9 @@ function startClock(){
 clearInterval(window.homeClock);
 
 const update=()=>{
-
 const now=new Date();
 
 const t=now.toLocaleTimeString("en-GB");
-
 const d=now.toLocaleDateString("en-GB",{
 
 weekday:"long",
