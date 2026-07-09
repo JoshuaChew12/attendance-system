@@ -134,53 +134,31 @@ err.message
 // =====================================================
 // CHECK IN
 // =====================================================
-async function checkIn(user){
+async function checkIn(){
 
 try{
 
-showResult(
-"⏳",
-"Getting GPS..."
-);
+showResult("⏳","Getting GPS...");
 
-const gps =
-await getLocation();
+const gps=await getLocation();
 
-const result =
-await apiPost({
+const result=await apiPost({
+
 action:"checkIn",
-branch_id:
-scannedBranch,
-lat:
-gps.lat,
-lng:
-gps.lng
+qr:scannedBranch,
+lat:gps.lat,
+lng:gps.lng
+
 });
 
-if(result.success){
-
 showResult(
-"✅",
-"Check In Successful"
+result.success?"✅":"❌",
+result.success?"Check In Successful":result.message
 );
 
-}
-else{
+}catch(err){
 
-showResult(
-"❌",
-result.message
-);
-
-}
-
-}
-catch(err){
-
-showResult(
-"❌",
-err.message
-);
+showResult("❌",err.message);
 
 }
 
