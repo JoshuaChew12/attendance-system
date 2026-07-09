@@ -15,7 +15,9 @@ const res=await apiPost({
 
 action:"login",
 username,
-password
+password,
+ip:"",
+device:navigator.userAgent
 
 });
 
