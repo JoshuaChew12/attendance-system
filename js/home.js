@@ -55,6 +55,9 @@ h<18?"🌤 Good Afternoon":
 set("employeeName",user.employee_name);
 set("branchName",user.branch_name);
 
+// Supervisor / Admin 才读取 Dashboard
+if(user.role!="Employee"){
+
 try{
 
 const dash=await apiGet({
@@ -70,6 +73,13 @@ set("late",dash.data.late);
 }
 
 }catch(e){}
+
+}else{
+
+set("present","-");
+set("late","-");
+
+}
 
 try{
 
