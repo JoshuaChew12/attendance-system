@@ -84,7 +84,7 @@ try{
 const t=await apiGet({
 action:"getTodayAttendance"
 });
-
+console.log("TODAY API",t);
 const r=t.record||{};
 
 set("checkIn",r.checkIn||"--:--");
