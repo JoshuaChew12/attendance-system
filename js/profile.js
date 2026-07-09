@@ -1,17 +1,13 @@
 window.profileData=window.profileData||{};
 
 async function loadProfile(){
-const user=JSON.parse(localStorage.getItem("user"));
-if(!user) return;
 
 const res=await apiGet({action:"getProfile"});
-if(!res.success) return;
+if(!res.success)return;
+profileData=res.data;
 
-window.profileData=res.data;
+const map={
 
-const set=(id,v)=>{const el=document.getElementById(id);if(el)el.innerHTML=v||"-"};
-
-const m={
 name:profileData.name,
 employeeID:profileData.employee_id,
 mykad:profileData.mykad,
@@ -21,25 +17,28 @@ email:profileData.email,
 address:profileData.address,
 position:profileData.position,
 department:profileData.department,
-branch:profileData.branch_name,
+// 修改这里
+branch:
+profileData.working_branch_name||
+profileData.default_branch_name||
+"-",
 joinDate:profileData.join_date,
 role:profileData.role
+
 };
 
-Object.keys(m).forEach(k=>{
-const el=document.getElementById(k);
-if(el) el.innerHTML=m[k]||"-";
+Object.keys(map).forEach(id=>{
+const el=document.getElementById(id);
+if(el)
+el.innerHTML=map[id]||"-";
+
 });
 
 const img=document.getElementById("profilePhoto");
 if(img&&profileData.photo){
-let p=profileData.photo;
-if(p.includes("drive.google.com")){
-const id=(p.match(/id=([^&]+)/)||[])[1];
-if(id) p="https://lh3.googleusercontent.com/d/"+id;
+img.src=profileData.photo+"?t="+Date.now();
 }
-img.src=p+"?t="+Date.now();
-}
+
 }
 
 async function uploadPhoto(){
