@@ -1,87 +1,77 @@
 <div class="calendar-page">
 
-<!-- HEADER -->
+    <!-- Header -->
+    <div class="calendar-header">
 
-<div class="calendar-header">
+        <button onclick="prevMonth()">‹</button>
 
-<button onclick="prevMonth()">
-‹
-</button>
+        <h2 id="monthTitle">Loading...</h2>
 
+        <button onclick="nextMonth()">›</button>
 
-<h2 id="monthTitle">
-Loading...
-</h2>
+    </div>
 
+    <!-- Week -->
+    <div class="week-title">
 
-<button onclick="nextMonth()">
-›
-</button>
+        <div>Sun</div>
+        <div>Mon</div>
+        <div>Tue</div>
+        <div>Wed</div>
+        <div>Thu</div>
+        <div>Fri</div>
+        <div>Sat</div>
 
-</div>
+    </div>
 
+    <!-- Calendar -->
+    <div id="calendarGrid"
+         class="calendar-grid">
+    </div>
 
-<!-- WEEK HEADER -->
+    <!-- Legend -->
+    <div class="calendar-legend">
 
-<div class="week-title">
+        <div class="legend-item">
+            <span class="legend-color present-day"></span>
+            <small>Present</small>
+        </div>
 
+        <div class="legend-item">
+            <span class="legend-color late-day"></span>
+            <small>Late</small>
+        </div>
 
-<div>
-Sun
-</div>
+        <div class="legend-item">
+            <span class="legend-color holiday-day"></span>
+            <small>Holiday</small>
+        </div>
 
+        <div class="legend-item">
+            <span class="legend-color weekly-day"></span>
+            <small>Weekly Off</small>
+        </div>
 
-<div>
-Mon
-</div>
+    </div>
 
+    <!-- Detail -->
+    <div id="detailBox"
+         class="detail-panel">
 
-<div>
-Tue
-</div>
+        <h3>Attendance Detail</h3>
 
+        <p>Select a date.</p>
 
-<div>
-Wed
-</div>
+        <button
+            class="leave-btn"
+            disabled>
 
+            Apply Leave
+            <br>
+            <small>(Coming Soon)</small>
 
-<div>
-Thu
-</div>
+        </button>
 
-
-<div>
-Fri
-</div>
-
-
-<div>
-Sat
-</div>
-
-
-
-</div>
-
-
-
-<!-- CALENDAR GRID -->
-
-<div id="calendarGrid"
-class="calendar-grid">
-
-</div>
-
-
-<!-- DETAIL -->
-
-<div id="detailBox"
-class="detail-panel">
-
-Select date
-
-</div>
-
+    </div>
 
 </div>
