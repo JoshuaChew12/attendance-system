@@ -1,107 +1,163 @@
-window.currentMonth=window.currentMonth||
-new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Kuala_Lumpur"}).slice(0,7);
+window.currentMonth=window.currentMonth||new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Kuala_Lumpur"}).slice(0,7);
 
-window.calendarData=[];
+window.calendarData={attendance:[],holiday:[],weeklyOff:[],leave:[]};
 
-function formatMonth(m){
-const p=m.split("-");
-return p[0]+"-"+String(p[1]).padStart(2,"0");
-}
+function loadCalendar(){
 
-async function loadCalendar(){
 const user=JSON.parse(localStorage.getItem("user"));
-if(!user) return;
+if(!user)return;
 
-const set=(id,v)=>{const el=document.getElementById(id);if(el)el.innerHTML=v};
+monthTitle.innerHTML=currentMonth;
 
-set("monthTitle",formatMonth(currentMonth));
-
-try{
-const res=await apiGet({
-action:"getMonthlyAttendance",
-month:formatMonth(currentMonth),
+apiGet({
+action:"getCalendarData",
+month:currentMonth,
 employee_id:user.employee_id
-});
-
-if(res.success){
-calendarData=res.data||[];
+})
+.then(r=>{
+if(r.success){
+calendarData=r.data||calendarData;
 renderCalendar();
 }
-}catch(e){
-set("calendarGrid","API Error");
-}
-}
-
-function renderCalendar(){
-const grid=document.getElementById("calendarGrid");
-if(!grid) return;
-grid.innerHTML="";
-
-const [y,m]=currentMonth.split("-").map(Number);
-const first=new Date(y,m-1,1).getDay();
-const days=new Date(y,m,0).getDate();
-
-for(let i=0;i<first;i++){
-const d=document.createElement("div");
-d.className="day empty";
-grid.appendChild(d);
-}
-
-for(let i=1;i<=days;i++){
-const date=`${currentMonth}-${String(i).padStart(2,"0")}`;
-const r=calendarData.find(x=>x.date===date);
-
-const d=document.createElement("div");
-d.className="day";
-d.innerHTML=i;
-
-if(r){
-if(r.status=="Present")d.classList.add("present-day");
-else if(r.status=="Late")d.classList.add("late-day");
-else if(r.status=="Absent")d.classList.add("absent-day");
-}
-
-d.onclick=()=>showDetail(date);
-grid.appendChild(d);
-}
-}
-
-async function showDetail(date){
-const user=JSON.parse(localStorage.getItem("user"));
-
-const res=await apiGet({
-action:"getAttendanceByDate",
-date:date,
-employee_id:user.employee_id
 });
 
-const box=document.getElementById("detailBox");
-if(!box) return;
-
-if(res.success&&res.data){
-const d=res.data;
-box.innerHTML=`
-<h3>${d.date}</h3>
-<p><b>Day:</b>${d.day}</p>
-<p><b>Check In:</b>${d.checkIn||"-"}</p>
-<p><b>Check Out:</b>${d.checkOut||"-"}</p>
-<p><b>Work Hours:</b>${d.workHours||0} hrs</p>
-<p><b>Late:</b>${d.lateMinutes||0} min</p>
-<p><b>Status:</b>${d.status||"-"}</p>
-`;
-}else box.innerHTML="No Attendance Record";
 }
 
+
+function getDayStatus(date){
+
+let x=calendarData.attendance.find(a=>a.date==date);
+if(x)return{
+type:x.type,
+label:x.type=="Late"?"L":"P",
+cls:x.type=="Late"?"late-day":"present-day",
+data:x
+};
+
+x=calendarData.holiday.find(a=>a.date==date);
+if(x)return{
+type:"Holiday",
+label:"H",
+cls:"holiday-day",
+data:x
+};
+
+x=calendarData.weeklyOff.find(a=>a.date==date);
+if(x)return{
+type:"Weekly Off",
+label:"OFF",
+cls:"weekly-day",
+data:x
+};
+
+x=calendarData.leave.find(a=>a.date==date);
+if(x)return{
+type:x.type,
+label:"LV",
+cls:"leave-day",
+data:x
+};
+
+return{type:"",label:"",cls:"",data:null};
+
+}
+
+
+function renderCalendar(){
+
+calendarGrid.innerHTML="";
+
+const [y,m]=currentMonth.split("-").map(Number);
+const start=new Date(y,m-1,1).getDay();
+const total=new Date(y,m,0).getDate();
+const today=new Date().toLocaleDateString("en-CA",{timeZone:"Asia/Kuala_Lumpur"});
+
+
+for(let i=0;i<start;i++)
+calendarGrid.innerHTML+="<div class='day empty'></div>";
+
+
+for(let i=1;i<=total;i++){
+
+let date=currentMonth+"-"+String(i).padStart(2,"0");
+let s=getDayStatus(date);
+
+let d=document.createElement("div");
+
+d.className="day "+s.cls+(date==today?" today":"");
+
+d.innerHTML=`
+<div>${i}<small>${s.label}</small></div>
+`;
+
+d.onclick=()=>showDetail(date);
+
+calendarGrid.appendChild(d);
+
+}
+
+}
+
+
+function showDetail(date){
+
+let box=document.getElementById("detailBox");
+let s=getDayStatus(date);
+
+if(!s.data){
+box.innerHTML=`
+<h3>${date}</h3>
+<p>No Attendance</p>
+<button class="leave-btn" disabled>
+Apply Leave<br>
+<small>Coming Soon</small>
+</button>`;
+return;
+}
+
+
+if(s.type=="Holiday"||s.type=="Weekly Off"){
+
+box.innerHTML=`
+<h3>${date}</h3>
+<p>Status : ${s.type}</p>
+${s.data.name||""}
+`;
+
+return;
+
+}
+
+
+let a=s.data;
+
+box.innerHTML=`
+<h3>${date}</h3>
+<p>Status : ${a.type}</p>
+<p>Check In : ${a.checkIn||"-"}</p>
+<p>Check Out : ${a.checkOut||"-"}</p>
+<p>Hours : ${a.workHours||0}</p>
+<p>Late : ${a.late||0} min</p>
+`;
+
+}
+
+
 function prevMonth(){
-const d=new Date(currentMonth+"-01");
+
+let d=new Date(currentMonth+"-01");
 d.setMonth(d.getMonth()-1);
 currentMonth=d.toISOString().slice(0,7);
 loadCalendar();
+
 }
 
+
 function nextMonth(){
-const d=new Date(currentMonth+"-01");
+
+let d=new Date(currentMonth+"-01");
 d.setMonth(d.getMonth()+1);
 currentMonth=d.toISOString().slice(0,7);
 loadCalendar();
+
 }
