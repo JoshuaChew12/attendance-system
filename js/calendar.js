@@ -101,6 +101,7 @@ calendarGrid.appendChild(d);
 
 function showDetail(date){
 
+window.selectedLeaveDate=date;
 let box=document.getElementById("detailBox");
 let s=getDayStatus(date);
 
@@ -108,9 +109,10 @@ if(!s.data){
 box.innerHTML=`
 <h3>${date}</h3>
 <p>No Attendance</p>
-<button class="leave-btn" disabled>
-Apply Leave<br>
-<small>Coming Soon</small>
+<button
+class="leave-btn"
+onclick="openLeaveApply()">
+📝 Apply Leave
 </button>`;
 return;
 }
@@ -142,6 +144,16 @@ box.innerHTML=`
 
 }
 
+function openLeaveApply(){
+
+if(!window.selectedLeaveDate){
+alert("Please select a date.");
+return;
+}
+
+loadPage("leaveApply");
+
+}
 
 function prevMonth(){
 
