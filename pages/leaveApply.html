@@ -1,52 +1,64 @@
-<div class="profile-page">
+<div class="leave-page">
 
 <h2>Apply Leave</h2>
 
-<div class="profile-card">
+<!-- Leave Balance -->
+<div id="leaveBalance" class="leave-balance"></div>
 
-<p>Leave Type</p>
+<!-- Form -->
+<div class="leave-form">
 
-<select id="leaveType">
-<option value="">Select Leave Type</option>
-</select>
+<select id="leaveType"></select>
 
-<p>Start Date</p>
+<input type="date" id="startDate">
 
-<input
-type="date"
-id="startDate">
+<input type="date" id="endDate">
 
-<p>End Date</p>
+<div id="leaveDuration" class="leave-info">
+0 Day
+</div>
 
-<input
-type="date"
-id="endDate">
+<div class="half-box">
 
-<p>Reason</p>
+<label>
+<input type="radio" name="halfDay" value="" checked>
+Full Day
+</label>
+
+<label>
+<input type="radio" name="halfDay" value="AM">
+Morning
+</label>
+
+<label>
+<input type="radio" name="halfDay" value="PM">
+Afternoon
+</label>
+
+</div>
 
 <textarea
-id="reason"
-placeholder="Reason (Optional)">
+id="leaveReason"
+rows="4"
+placeholder="Reason">
 </textarea>
 
-<p id="leaveDays"
-style="
-margin:10px 0;
-font-weight:bold;
-color:#2563eb;
-">
-Total Leave :
-0 Day
-</p>
+<input
+type="file"
+id="leaveFile"
+accept=".jpg,.jpeg,.png,.pdf">
+
+<div id="filePreview"></div>
 
 <button onclick="submitLeave()">
-📨 Submit Leave
+Submit Leave
 </button>
 
-<button onclick="loadPage('calendar')">
-❌ Cancel
-</button>
+</div>
 
+<!-- Summary -->
+<div id="leaveSummary"
+class="leave-summary">
 </div>
 
 </div>
