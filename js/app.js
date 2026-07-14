@@ -104,6 +104,13 @@ await loadCalendar();
 
 },
 
+leaveApply:async()=>{
+
+if(typeof loadLeaveApply==="function")
+await loadLeaveApply();
+
+},
+
 profile:async()=>{
 
 if(typeof loadProfile==="function")
