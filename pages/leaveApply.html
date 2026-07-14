@@ -8,7 +8,9 @@
 <!-- Form -->
 <div class="leave-form">
 
-<select id="leaveType"></select>
+<select id="leaveType">
+<option value="">Select Leave Type</option>
+</select>
 
 <input type="date" id="startDate">
 
@@ -50,7 +52,7 @@ accept=".jpg,.jpeg,.png,.pdf">
 
 <div id="filePreview"></div>
 
-<button onclick="submitLeave()">
+<button id="btnSubmit" onclick="submitLeave()">
 Submit Leave
 </button>
 
