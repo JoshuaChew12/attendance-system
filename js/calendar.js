@@ -23,10 +23,17 @@ renderCalendar();
 
 }
 
-
 function getDayStatus(date){
 
-let x=calendarData.attendance.find(a=>a.date==date);
+let x=calendarData.leave.find(a=>a.date==date);
+if(x)return{
+type:"Leave",
+label:"LV",
+cls:"leave-day",
+data:x
+};
+
+x=calendarData.attendance.find(a=>a.date==date);
 if(x)return{
 type:x.type,
 label:x.type=="Late"?"L":"P",
@@ -50,19 +57,9 @@ cls:"weekly-day",
 data:x
 };
 
-x=calendarData.leave.find(a=>a.date==date);
-if(x)return{
-type:x.type,
-label:"LV",
-cls:"leave-day",
-data:x
-};
-
 return{type:"",label:"",cls:"",data:null};
 
 }
-
-
 function renderCalendar(){
 
 calendarGrid.innerHTML="";
@@ -98,7 +95,6 @@ calendarGrid.appendChild(d);
 
 }
 
-
 function showDetail(date){
 
 window.selectedLeaveDate=date;
@@ -108,48 +104,53 @@ let s=getDayStatus(date);
 if(!s.data){
 box.innerHTML=`
 <h3>${date}</h3>
-<p>No Attendance</p>
+<p>No Record</p>
 <button
 class="leave-btn"
 onclick="openLeaveApply()">
 📝 Apply Leave
-</button>`;
+</button>
+`;
 return;
 }
 
+if(s.type=="Leave"){
+let l=s.data;
+box.innerHTML=`
+<h3>${date}</h3>
+<p>Status :Leave</p>
+<p>Type :${l.leaveType||"-"}</p>
+<p>Days :${l.days||0}</p>
+<p>Half Day :${l.halfDay||"-"}</p>
+<p>Reason :${l.reason||"-"}</p>
+`;
+return;
+}
 
 if(s.type=="Holiday"||s.type=="Weekly Off"){
-
 box.innerHTML=`
 <h3>${date}</h3>
-<p>Status : ${s.type}</p>
-${s.data.name||""}
+<p>Status :${s.type}</p>
+<p>${s.data.name||""}</p>
 `;
-
 return;
-
 }
 
-
 let a=s.data;
-
 box.innerHTML=`
 <h3>${date}</h3>
-<p>Status : ${a.type}</p>
-<p>Check In : ${a.checkIn||"-"}</p>
-<p>Check Out : ${a.checkOut||"-"}</p>
-<p>Hours : ${a.workHours||0}</p>
-<p>Late : ${a.late||0} min</p>
+<p>Status :${a.type}</p>
+<p>Check In :${a.checkIn||"-"}</p>
+<p>Check Out :${a.checkOut||"-"}</p>
+<p>Hours :${a.workHours||0}</p>
+<p>Late :${a.late||0} min</p>
 `;
-
 }
 
 function openLeaveApply(){
 
-if(!window.selectedLeaveDate){
-alert("Please select a date.");
-return;
-}
+let date=window.selectedLeaveDate||"";
+sessionStorage.setItem("leaveStartDate",date);
 
 loadPage("leaveApply");
 
