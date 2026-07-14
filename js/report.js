@@ -153,7 +153,7 @@ setSummary(
 reportResult.innerHTML=
 (res.data||[]).map(r=>`
 
-<div class="report-card">
+<div class="leave-card">
 
 <b>${r.leave_type}</b>
 
@@ -216,7 +216,7 @@ function renderLeave(rows,balance=false){
 reportResult.innerHTML=
 rows.map(r=>`
 
-<div class="report-card">
+<div class="balance-card">
 
 <b>
 ${r.leave_type}
