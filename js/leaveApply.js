@@ -75,28 +75,22 @@ return await res.json();
 // LOAD LEAVE TYPE
 // =====================================================
 async function loadLeaveType(){
+
 const select=document.getElementById("leaveType");
-
-/*
-如果以后增加 getLeaveType API
-这里直接替换即可
-*/
-
-const types=[
-"Annual Leave",
-"Sick Leave",
-"Emergency Leave",
-"Unpaid Leave"
-];
-
 select.innerHTML='<option value="">Select Leave Type</option>';
-types.forEach(t=>{
-const o=document.createElement("option");
-o.value=t;
-o.textContent=t;
-select.appendChild(o);
 
+const r=await apiGet("getLeaveTypeList");
+if(!r.success)
+return;
+
+r.data.forEach(x=>{
+const o=document.createElement("option");
+o.value=x.id;
+o.textContent=
+x.name;
+select.appendChild(o);
 });
+
 
 }
 
