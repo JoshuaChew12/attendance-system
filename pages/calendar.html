@@ -25,9 +25,7 @@
     </div>
 
     <!-- Calendar -->
-    <div id="calendarGrid"
-         class="calendar-grid">
-    </div>
+    <div id="calendarGrid" class="calendar-grid"></div>
 
     <!-- Legend -->
     <div class="calendar-legend">
@@ -43,6 +41,11 @@
         </div>
 
         <div class="legend-item">
+            <span class="legend-color leave-day"></span>
+            <small>Leave</small>
+        </div>
+
+        <div class="legend-item">
             <span class="legend-color holiday-day"></span>
             <small>Holiday</small>
         </div>
@@ -55,8 +58,7 @@
     </div>
 
     <!-- Detail -->
-    <div id="detailBox"
-         class="detail-panel">
+    <div id="detailBox" class="detail-panel">
 
         <h3>Attendance Detail</h3>
 
@@ -64,11 +66,9 @@
 
         <button
             class="leave-btn"
-            disabled>
+            onclick="openLeaveApply()">
 
-            Apply Leave
-            <br>
-            <small>(Coming Soon)</small>
+            📝 Apply Leave
 
         </button>
 
