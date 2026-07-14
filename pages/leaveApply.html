@@ -1,0 +1,52 @@
+<div class="profile-page">
+
+<h2>Apply Leave</h2>
+
+<div class="profile-card">
+
+<p>Leave Type</p>
+
+<select id="leaveType">
+<option value="">Select Leave Type</option>
+</select>
+
+<p>Start Date</p>
+
+<input
+type="date"
+id="startDate">
+
+<p>End Date</p>
+
+<input
+type="date"
+id="endDate">
+
+<p>Reason</p>
+
+<textarea
+id="reason"
+placeholder="Reason (Optional)">
+</textarea>
+
+<p id="leaveDays"
+style="
+margin:10px 0;
+font-weight:bold;
+color:#2563eb;
+">
+Total Leave :
+0 Day
+</p>
+
+<button onclick="submitLeave()">
+📨 Submit Leave
+</button>
+
+<button onclick="loadPage('calendar')">
+❌ Cancel
+</button>
+
+</div>
+
+</div>
