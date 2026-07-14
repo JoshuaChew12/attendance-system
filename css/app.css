@@ -817,9 +817,7 @@ cursor:pointer;
 }
 
 .report-card p{
-
 margin:8px 0;
-
 }
 
 .badge{
@@ -832,31 +830,201 @@ color:#fff;
 }
 
 .present{
-
 background:#16a34a;
-
 }
 
 .late{
-
 background:#eab308;
-
 color:#222;
-
 }
 
 .absent{
-
 background:#dc2626;
-
 }
 
 @media(max-width:480px){
 
 .report-summary{
-
 grid-template-columns:1fr 1fr;
+}
 
+}
+
+/* ==========================
+REPORT SWITCH
+========================== */
+.report-switch{
+
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+margin-bottom:20px;
+
+}
+
+
+.report-switch button,
+.leave-tabs button{
+
+height:42px;
+border:none;
+border-radius:12px;
+background:#e5e7eb;
+font-size:15px;
+font-weight:600;
+
+}
+
+.report-switch button:first-child{
+
+background:#2563eb;
+color:white;
+
+}
+
+/* ==========================
+LEAVE TABS
+========================== */
+.leave-tabs{
+
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+margin-bottom:20px;
+
+}
+
+.leave-tabs button{
+background:#f1f5f9;
+}
+
+.leave-tabs button:hover{
+
+background:#2563eb;
+color:white;
+
+}
+
+/* ==========================
+LEAVE REPORT CARD
+========================== */
+.leave-card{
+
+background:#fff;
+padding:16px;
+border-radius:18px;
+margin-bottom:15px;
+box-shadow:0 4px 12px rgba(0,0,0,.08);
+
+}
+
+.leave-title{
+
+display:flex;
+justify-content:space-between;
+align-items:center;
+font-size:16px;
+font-weight:600;
+
+}
+
+.leave-date{
+
+font-size:14px;
+color:#666;
+margin-top:8px;
+
+}
+
+.leave-info{
+
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+margin-top:12px;
+font-size:14px;
+
+}
+
+/* ==========================
+LEAVE STATUS
+========================== */
+.pending{
+background:#f59e0b;
+}
+
+.approved{
+background:#16a34a;
+}
+
+.rejected{
+background:#dc2626;
+}
+
+.cancelled{
+background:#64748b;
+}
+
+/* ==========================
+LEAVE BALANCE CARD
+========================== */
+.balance-card{
+
+background:#fff;
+padding:16px;
+border-radius:18px;
+margin-bottom:15px;
+box-shadow:0 4px 12px rgba(0,0,0,.08);
+
+}
+
+.balance-header{
+
+display:flex;
+justify-content:space-between;
+font-weight:600;
+
+}
+
+.balance-bar{
+
+height:10px;
+background:#e5e7eb;
+border-radius:10px;
+overflow:hidden;
+margin-top:12px;
+
+}
+
+.balance-fill{
+
+height:100%;
+background:#2563eb;
+border-radius:10px;
+
+}
+
+.balance-number{
+
+display:flex;
+justify-content:space-between;
+margin-top:10px;
+font-size:13px;
+color:#666;
+
+}
+
+/* ==========================
+MOBILE
+========================== */
+@media(max-width:480px){
+
+.leave-tabs{
+grid-template-columns:1fr;
+}
+
+.leave-info{
+grid-template-columns:1fr;
 }
 
 }
