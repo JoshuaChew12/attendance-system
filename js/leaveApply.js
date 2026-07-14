@@ -1,84 +1,73 @@
-let leaveBalanceData=[];
-let submitting=false;
+var leaveBalanceData=[];
+var submitting=false;
 
-document.addEventListener("DOMContentLoaded",()=>{
+async function loadLeaveApply(){
 
-loadLeaveType();
-loadLeaveSummary();
+bindLeaveEvent();
+await loadLeaveType();
+await loadLeaveSummary();
 
-["startDate","endDate"].forEach(id=>
-document.getElementById(id)
-.addEventListener("change",calculateDays)
-);
+}
+
+function bindLeaveEvent(){
+
+startDate.onchange=calculateDays;
+endDate.onchange=calculateDays;
 
 document
 .querySelectorAll('input[name="halfDay"]')
-.forEach(x=>x.addEventListener("change",calculateDays));
+.forEach(x=>{x.onchange=calculateDays;});
 
-document
-.getElementById("leaveFile")
-.addEventListener("change",previewFile);
+leaveFile.onchange=previewFile;
 
-});
+}
 
 async function loadLeaveType(){
 
-const s=document.getElementById("leaveType");
-s.innerHTML='<option value="">Select Leave Type</option>';
-
-try{
+leaveType.innerHTML='<option value="">Select Leave Type</option>';
 const r=await apiGet({action:"getLeaveTypeList"});
 if(!r.success)return;
 
 r.data.forEach(x=>{
-const o=document.createElement("option");
+let o=document.createElement("option");
 o.value=x.id;
 o.textContent=x.name;
-s.appendChild(o);
+leaveType.appendChild(o);
 });
-
-}catch(e){console.log(e);}
 
 }
 
 async function loadLeaveSummary(){
 
-const emp=JSON.parse(sessionStorage.getItem("user")||"{}");
-if(!emp.employee_id)return;
+const user=JSON.parse(localStorage.getItem("user")||"{}");
 
-try{
+if(!user.employee_id)return;
 
 const r=await apiGet({
 action:"getLeaveSummary",
-employee_id:emp.employee_id,
+employee_id:user.employee_id,
 year:new Date().getFullYear()
 });
 
 if(!r.success)return;
-
 leaveBalanceData=r.data||[];
-renderBalance();
 
-}catch(e){console.log(e);}
+renderBalance();
 
 }
 
 function renderBalance(){
 
-const box=document.getElementById("leaveBalance");
-
-if(!leaveBalanceData.length){box.innerHTML="";
-return;
-}
-
-box.innerHTML=leaveBalanceData.map(x=>`
+leaveBalance.innerHTML=
+leaveBalanceData.map(x=>`
 
 <div class="balance-card">
 <b>${x.leave_type}</b><br>
 Entitled : ${x.entitled}<br>
 Used : ${x.used}<br>
 Pending : ${x.pending}<br>
-Balance : <strong>${x.balance}</strong>
+Balance :<strong>${x.balance}</strong>
+
 </div>
 
 `).join("");
@@ -87,40 +76,45 @@ Balance : <strong>${x.balance}</strong>
 
 function calculateDays(){
 
-const s=startDate.value;
-const e=endDate.value;
+let s=startDate.value;
+let e=endDate.value;
 
 if(!s||!e){leaveDuration.innerHTML="0 Day";
-return 0;}
+return;
+}
 
 if(s>e){leaveDuration.innerHTML="Invalid Date";
-return 0;}
+return;
+}
 
-let d=new Date(s),l=new Date(e),days=0;
-while(d<=l){days++;
+let d=new Date(s);
+let end=new Date(e);
+let days=0;
+while(d<=end){
+days++;
 d.setDate(d.getDate()+1);
 }
 
-if(document.querySelector('input[name="halfDay"]:checked').value)
+let half=document
+.querySelector('input[name="halfDay"]:checked').value;
+
+if(half)
 days-=0.5;
 
 leaveDuration.innerHTML=days+(days>1?" Days":" Day");
-
-return days;
 
 }
 
 function previewFile(){
 
-const f=leaveFile.files[0];
+let f=leaveFile.files[0];
 if(!f){filePreview.innerHTML="";
 return;
 }
 
 if(f.size>5*1024*1024){
-toast("File too large (Max 5MB)");
+toast("File too large");
 leaveFile.value="";
-filePreview.innerHTML="";
 return;
 }
 
@@ -130,27 +124,31 @@ filePreview.innerHTML="✔️ "+f.name;
 
 async function uploadAttachment(){
 
-const f=leaveFile.files[0];
+let f=leaveFile.files[0];
 if(!f)return "";
 return new Promise((resolve,reject)=>{
 
-const r=new FileReader();
-r.onload=async()=>{
+let reader=new FileReader();
+reader.onload=async()=>{
 
 try{
 
-const x=await apiPost({
+let r=await apiPost({
 action:"uploadLeaveAttachment",
-file:r.result,
+file:reader.result,
 filename:f.name
 });
 
-x.success?resolve(x.url||""):reject(x.message);
+if(r.success)
+resolve(r.url||"");
+else
+reject(r.message);
+
 }catch(e){reject(e);}
 
 };
 
-r.readAsDataURL(f);
+reader.readAsDataURL(f);
 
 });
 
@@ -159,19 +157,15 @@ r.readAsDataURL(f);
 async function submitLeave(){
 
 if(submitting)return;
+let days=calculateLeaveValue();
 
-const type=leaveType.value;
-const start=startDate.value;
-const end=endDate.value;
-const half=document.querySelector('input[name="halfDay"]:checked').value;
-const reason=leaveReason.value.trim();
-
-if(!type)return toast("Select Leave Type");
-if(!start||!end)return toast("Select Date");
-if(start>end)return toast("Invalid Date");
-
-const days=calculateLeaveValue();
-if(days<=0)return toast("Invalid Leave");
+if(!leaveType.value)
+return toast("Select Leave Type");
+if(!startDate.value||
+!endDate.value)
+return toast("Select Date");
+if(days<=0)
+return toast("Invalid Leave");
 
 submitting=true;
 btnSubmit.disabled=true;
@@ -179,47 +173,51 @@ btnSubmit.innerHTML="Submitting...";
 
 try{
 
-const attachment=await uploadAttachment();
-const r=await apiPost({
+let attachment=await uploadAttachment();
+let r=await apiPost({
 
 action:"applyLeave",
-leave_type:type,
-start_date:start,
-end_date:end,
-half_day:half,
-reason,
+leave_type:leaveType.value,
+start_date:startDate.value,
+end_date:endDate.value,
+half_day:document.querySelector('input[name="halfDay"]:checked').value,
+reason:leaveReason.value.trim(),
 attachment
 
 });
 
-if(!r.success)throw r.message;
+if(!r.success)
+throw r.message;
 toast("Leave Submitted");
 resetForm();
-
 await loadLeaveSummary();
 
-}catch(e){toast(e.message||e);
-}finally{
-
+}
+catch(e){toast(e.message||e);}
+finally{
 submitting=false;
 btnSubmit.disabled=false;
 btnSubmit.innerHTML="Submit Leave";
-
 }
 
 }
 
 function calculateLeaveValue(){
 
-const s=startDate.value;
-const e=endDate.value;
+let s=startDate.value;
+let e=endDate.value;
+if(!s||!e||s>e)
+return 0;
 
-if(!s||!e||s>e)return 0;
-let d=new Date(s),l=new Date(e),n=0;
-while(d<=l){n++;
+let d=new Date(s);
+let end=new Date(e);
+let n=0;
+
+while(d<=end){
+n++;
 d.setDate(d.getDate()+1);
 }
-
+  
 if(document.querySelector('input[name="halfDay"]:checked').value)
 n-=0.5;
 
@@ -235,7 +233,9 @@ endDate.value="";
 leaveReason.value="";
 leaveFile.value="";
 
-document.querySelector('input[name="halfDay"][value=""]').checked=true;
+document
+.querySelector('input[name="halfDay"][value=""]')
+.checked=true;
 
 leaveDuration.innerHTML="0 Day";
 filePreview.innerHTML="";
