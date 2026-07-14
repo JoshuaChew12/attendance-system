@@ -1,6 +1,25 @@
 <div class="report-page">
 
-<h2>Attendance Report</h2>
+<h2 id="reportTitle">
+Attendance Report
+</h2>
+
+
+<div class="report-switch">
+
+<button onclick="switchReport('attendance')">
+Attendance
+</button>
+
+<button onclick="switchReport('leave')">
+Leave
+</button>
+
+</div>
+
+<!-- ================= Attendance ================= -->
+
+<div id="attendanceMode">
 
 <div class="report-filter">
 
@@ -10,36 +29,71 @@
 
 <div id="employeeBox"></div>
 
-<button onclick="searchReport()">Search</button>
+<button onclick="searchReport()">
+Search
+</button>
 
-<button onclick="exportCSV()">Export CSV</button>
+<button onclick="exportCSV()">
+Export CSV
+</button>
+
 
 </div>
+
+
+</div>
+
+<!-- ================= Leave ================= -->
+
+<div id="leaveMode" style="display:none">
+
+<div class="leave-tabs">
+
+<button onclick="loadMyLeave()">
+My Leave
+</button>
+
+<button onclick="loadLeaveBalance()">
+Balance
+</button>
+
+<button onclick="loadPendingLeave()">
+Pending
+</button>
+
+</div>
+
+
+</div>
+
 
 <div class="report-summary">
 
 <div class="summary-card">
-<p>Present</p>
-<h2 id="sumPresent">0</h2>
+<p id="s1">Present</p>
+<h2 id="sum1">0</h2>
 </div>
 
 <div class="summary-card">
-<p>Late</p>
-<h2 id="sumLate">0</h2>
+<p id="s2">Late</p>
+<h2 id="sum2">0</h2>
 </div>
 
 <div class="summary-card">
-<p>Total Hours</p>
-<h2 id="sumHours">0</h2>
+<p id="s3">Total Hours</p>
+<h2 id="sum3">0</h2>
 </div>
 
 <div class="summary-card">
-<p>Average</p>
-<h2 id="sumAverage">0</h2>
+<p id="s4">Average</p>
+<h2 id="sum4">0</h2>
 </div>
 
+
 </div>
+
 
 <div id="reportResult"></div>
+
 
 </div>
