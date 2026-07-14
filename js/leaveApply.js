@@ -1,431 +1,252 @@
-const LEAVE_API = window.API_URL || "";
+let leaveBalanceData=[];
+let submitting=false;
 
-let leaveBalanceData = [];
-let attachmentURL = "";
-let submitting = false;
-
-// =====================================================
-// INIT
-// =====================================================
 document.addEventListener("DOMContentLoaded",()=>{
+
 loadLeaveType();
 loadLeaveSummary();
 
-document
-.getElementById("startDate")
-.addEventListener("change",calculateDays);
-
-document
-.getElementById("endDate")
-.addEventListener("change",calculateDays);
+["startDate","endDate"].forEach(id=>
+document.getElementById(id)
+.addEventListener("change",calculateDays)
+);
 
 document
 .querySelectorAll('input[name="halfDay"]')
-.forEach(x=>x.addEventListener(
-"change",
-calculateDays
-));
+.forEach(x=>x.addEventListener("change",calculateDays));
 
 document
 .getElementById("leaveFile")
-.addEventListener(
-"change",
-previewFile
-);
+.addEventListener("change",previewFile);
 
 });
 
-// =====================================================
-// API CALL
-// =====================================================
-async function apiPost(action,data={}){
-
-const token=sessionStorage.getItem("token");
-data.action=action;
-data.token=token||"";
-const res=await fetch(
-LEAVE_API,
-{
-method:"POST",
-headers:{
-"Content-Type":
-"application/x-www-form-urlencoded"
-},
-body:new URLSearchParams(data)
-}
-);
-
-return await res.json();
-
-}
-
-
-async function apiGet(action,data={}){
-
-const token=sessionStorage.getItem("token");
-data.action=action;
-data.token=token||"";
-const q=new URLSearchParams(data);
-const res=await fetch(LEAVE_API+"?"+q);
-return await res.json();
-
-}
-
-// =====================================================
-// LOAD LEAVE TYPE
-// =====================================================
 async function loadLeaveType(){
 
-const select=document.getElementById("leaveType");
-select.innerHTML='<option value="">Select Leave Type</option>';
+const s=document.getElementById("leaveType");
+s.innerHTML='<option value="">Select Leave Type</option>';
 
-const r=await apiGet("getLeaveTypeList");
-if(!r.success)
-return;
+try{
+const r=await apiGet({action:"getLeaveTypeList"});
+if(!r.success)return;
 
 r.data.forEach(x=>{
 const o=document.createElement("option");
 o.value=x.id;
-o.textContent=
-x.name;
-select.appendChild(o);
+o.textContent=x.name;
+s.appendChild(o);
 });
 
-
-}
-
-// =====================================================
-// LOAD LEAVE BALANCE
-// =====================================================
-async function loadLeaveSummary(){
-const box=document.getElementById("leaveBalance");
-const emp=JSON.parse(sessionStorage.getItem("user")||"{}");
-if(!emp.employee_id)
-return;
-const year=new Date().getFullYear();
-
-try{
-const r=await apiGet("getLeaveSummary",{
-employee_id:
-emp.employee_id,
-year
-}
-);
-
-if(!r.success)
-return;
-leaveBalanceData=r.data||[];
-renderBalance();
 }catch(e){console.log(e);}
 
 }
 
-// =====================================================
-// RENDER BALANCE
-// =====================================================
+async function loadLeaveSummary(){
+
+const emp=JSON.parse(sessionStorage.getItem("user")||"{}");
+if(!emp.employee_id)return;
+
+try{
+
+const r=await apiGet({
+action:"getLeaveSummary",
+employee_id:emp.employee_id,
+year:new Date().getFullYear()
+});
+
+if(!r.success)return;
+
+leaveBalanceData=r.data||[];
+renderBalance();
+
+}catch(e){console.log(e);}
+
+}
+
 function renderBalance(){
 
 const box=document.getElementById("leaveBalance");
-if(!leaveBalanceData.length){
-box.innerHTML="";
+
+if(!leaveBalanceData.length){box.innerHTML="";
 return;
 }
 
 box.innerHTML=leaveBalanceData.map(x=>`
+
 <div class="balance-card">
-<b>${x.leave_type}</b>
-<br>Entitled:${x.entitled}
-<br>Used:${x.used}
-<br>Pending:${x.pending}
-<br>Balance:<strong>${x.balance}</strong>
+<b>${x.leave_type}</b><br>
+Entitled : ${x.entitled}<br>
+Used : ${x.used}<br>
+Pending : ${x.pending}<br>
+Balance : <strong>${x.balance}</strong>
 </div>
+
 `).join("");
 
 }
 
-// =====================================================
-// DATE CALCULATION
-// =====================================================
 function calculateDays(){
 
-const start=document.getElementById("startDate").value;
-const end=document.getElementById("endDate").value;
-const box=document.getElementById("leaveDuration");
+const s=startDate.value;
+const e=endDate.value;
 
-if(!start||!end){box.innerHTML="0 Day";
-return;
-}
+if(!s||!e){leaveDuration.innerHTML="0 Day";
+return 0;}
 
-if(start>end){box.innerHTML="Invalid Date";
-return;
-}
+if(s>e){leaveDuration.innerHTML="Invalid Date";
+return 0;}
 
-let d=new Date(start);
-const last=new Date(end);
-let count=0;
-while(d<=last){count++;
+let d=new Date(s),l=new Date(e),days=0;
+while(d<=l){days++;
 d.setDate(d.getDate()+1);
+}
+
+if(document.querySelector('input[name="halfDay"]:checked').value)
+days-=0.5;
+
+leaveDuration.innerHTML=days+(days>1?" Days":" Day");
+
+return days;
 
 }
 
-const half=document
-.querySelector('input[name="halfDay"]:checked')
-.value;
-if((half=="AM"||half=="PM")&&count>0)
-count-=0.5;
-box.innerHTML=count+(count>1?" Days":" Day");
-
-}
-
-// =====================================================
-// FILE PREVIEW
-// =====================================================
 function previewFile(){
 
-const file=document.getElementById("leaveFile").files[0];
-const box=document.getElementById("filePreview");
-
-if(!file){box.innerHTML="";
-return;
-}
-  
-if(file.size>5*1024*1024){
-alert("File too large (Max 5MB)");
-document
-.getElementById("leaveFile")
-.value="";
+const f=leaveFile.files[0];
+if(!f){filePreview.innerHTML="";
 return;
 }
 
-box.innerHTML=`✔️ ${file.name}`;
+if(f.size>5*1024*1024){
+toast("File too large (Max 5MB)");
+leaveFile.value="";
+filePreview.innerHTML="";
+return;
+}
+
+filePreview.innerHTML="✔️ "+f.name;
 
 }
 
-// =====================================================
-// UPLOAD ATTACHMENT
-// =====================================================
 async function uploadAttachment(){
 
-const input=document.getElementById("leaveFile");
-if(!input.files.length)
-return "";
-const file=input.files[0];
+const f=leaveFile.files[0];
+if(!f)return "";
 return new Promise((resolve,reject)=>{
-const reader=new FileReader();
 
-reader.onload=async()=>{
+const r=new FileReader();
+r.onload=async()=>{
 
 try{
-const r=await apiPost("uploadLeaveAttachment",
-{file:reader.result});
 
-if(r.success)
-resolve(r.url);
-else
-reject(r.message);
+const x=await apiPost({
+action:"uploadLeaveAttachment",
+file:r.result,
+filename:f.name
+});
 
+x.success?resolve(x.url||""):reject(x.message);
 }catch(e){reject(e);}
 
 };
 
-reader.readAsDataURL(file);
+r.readAsDataURL(f);
 
 });
 
 }
 
-// =====================================================
-// SUBMIT LEAVE
-// =====================================================
 async function submitLeave(){
 
-if(submitting)
-return;
+if(submitting)return;
 
-const type=document
-.getElementById("leaveType")
-.value;
+const type=leaveType.value;
+const start=startDate.value;
+const end=endDate.value;
+const half=document.querySelector('input[name="halfDay"]:checked').value;
+const reason=leaveReason.value.trim();
 
-const start=document
-.getElementById("startDate")
-.value;
-
-const end=document
-.getElementById("endDate")
-.value;
-
-const reason=document
-.getElementById("leaveReason")
-.value.trim();
-
-const half=document
-.querySelector('input[name="halfDay"]:checked')
-.value;
-
-// ===============================
-// VALIDATION
-// ===============================
-if(!type){
-toast("Please select leave type");
-return;
-}
-
-if(!start||!end){
-toast("Please select date");
-return;
-}
-
-if(start>end){
-toast("Invalid date range");
-return;
-}
+if(!type)return toast("Select Leave Type");
+if(!start||!end)return toast("Select Date");
+if(start>end)return toast("Invalid Date");
 
 const days=calculateLeaveValue();
-if(days<=0){
-toast("No working days");
-return;
-}
+if(days<=0)return toast("Invalid Leave");
 
-// ===============================
-// BUTTON LOCK
-// ===============================
 submitting=true;
-
-const btn=document.getElementById("btnSubmit");
-if(btn){
-btn.disabled=true;
-btn.innerHTML="Submitting...";
-}
+btnSubmit.disabled=true;
+btnSubmit.innerHTML="Submitting...";
 
 try{
-// ===============================
-// UPLOAD FILE
-// ===============================
-let attachment="";
-if(document
-.getElementById("leaveFile")
-.files.length
-){
-attachment=await uploadAttachment();
-}
 
-// ===============================
-// APPLY LEAVE
-// ===============================
-const r=await apiPost("applyLeave",
-{
+const attachment=await uploadAttachment();
+const r=await apiPost({
+
+action:"applyLeave",
 leave_type:type,
 start_date:start,
 end_date:end,
 half_day:half,
 reason,
 attachment
-}
-);
 
-if(!r.success){throw r.message;}
+});
 
-// ===============================
-// SUCCESS
-// ===============================
+if(!r.success)throw r.message;
 toast("Leave Submitted");
 resetForm();
+
 await loadLeaveSummary();
 
-}catch(e){toast(e.message||e);}finally{
+}catch(e){toast(e.message||e);
+}finally{
+
 submitting=false;
-
-if(btn){
-btn.disabled=false;
-btn.innerHTML="Submit Leave";
-}
+btnSubmit.disabled=false;
+btnSubmit.innerHTML="Submit Leave";
 
 }
 
 }
 
-// =====================================================
-// CALCULATE VALUE
-// =====================================================
 function calculateLeaveValue(){
 
-const start=document
-.getElementById("startDate")
-.value;
+const s=startDate.value;
+const e=endDate.value;
 
-const end=document
-.getElementById("endDate")
-.value;
-
-if(!start||!end)
-return 0;
-
-let count=0;
-let d=new Date(start);
-const last=new Date(end);
-while(d<=last){
-count++;
+if(!s||!e||s>e)return 0;
+let d=new Date(s),l=new Date(e),n=0;
+while(d<=l){n++;
 d.setDate(d.getDate()+1);
 }
 
-const half=document
-.querySelector('input[name="halfDay"]:checked')
-.value;
+if(document.querySelector('input[name="halfDay"]:checked').value)
+n-=0.5;
 
-if(half=="AM"||half=="PM")
-count-=0.5;
-return count;
+return n;
 
 }
 
-// =====================================================
-// RESET FORM
-// =====================================================
 function resetForm(){
 
-document
-.getElementById("leaveType")
-.value="";
+leaveType.value="";
+startDate.value="";
+endDate.value="";
+leaveReason.value="";
+leaveFile.value="";
 
-document
-.getElementById("startDate")
-.value="";
+document.querySelector('input[name="halfDay"][value=""]').checked=true;
 
-document
-.getElementById("endDate")
-.value="";
-
-document
-.getElementById("leaveReason")
-.value="";
-
-document
-.getElementById("leaveFile")
-.value="";
-
-document
-.querySelector('input[name="halfDay"][value=""]')
-.checked=true;
-
-document
-.getElementById("leaveDuration")
-.innerHTML="0 Day";
-
-document
-.getElementById("filePreview")
-.innerHTML="";
+leaveDuration.innerHTML="0 Day";
+filePreview.innerHTML="";
 
 }
 
-// =====================================================
-// TOAST
-// =====================================================
 function toast(msg){
 
-if(window.showToast){showToast(msg);
-return;
-}
-
+if(window.showToast)
+showToast(msg);
+else
 alert(msg);
 
 }
