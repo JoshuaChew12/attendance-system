@@ -303,48 +303,70 @@ margin-top:20px;
 /* =====================================================
    CALENDAR
 ===================================================== */
-.calendar-page{
-width:100%;
-}
+.calendar-page{width:100%;}
 
 .calendar-header{
+
 display:flex;
 justify-content:space-between;
 align-items:center;
-margin-bottom:15px;
+margin-bottom:10px;
+
 }
 
 .calendar-header h2{
+
 font-size:20px;
 margin:0;
+font-weight:700;
+
 }
 
 .calendar-header button{
+
 border:0;
 background:white;
 width:42px;
 height:42px;
 border-radius:50%;
-font-size:28px;
-box-shadow:0 3px 10px rgba(0,0,0,.1);
+font-size:26px;
+box-shadow:0 3px 10px rgba(0,0,0,.12);
+
+}
+
+.today-btn{
+
+margin-bottom:15px;
+border:0;
+background:#2563eb;
+color:white;
+padding:8px 18px;
+border-radius:20px;
+font-size:13px;
+
 }
 
 .week-title{
+
 display:grid;
 grid-template-columns:repeat(7,1fr);
 text-align:center;
 font-size:12px;
 color:#777;
 margin-bottom:10px;
+
 }
 
 .calendar-grid{
+
 display:grid;
 grid-template-columns:repeat(7,1fr);
 gap:8px;
+
 }
 
 .day{
+
 aspect-ratio:1;
 display:flex;
 align-items:center;
@@ -353,22 +375,27 @@ background:white;
 border-radius:50%;
 font-size:14px;
 cursor:pointer;
-text-align:center;
 position:relative;
+box-shadow:0 2px 8px rgba(0,0,0,.05);
+
 }
 
 .day small{
+
 display:block;
 font-size:10px;
 font-weight:bold;
+
 }
 
 .day.empty{
+
 background:transparent;
+box-shadow:none;
 cursor:default;
+
 }
 
-/* Attendance */
 .present-day{
 background:#22c55e;
 color:white;
@@ -379,81 +406,77 @@ background:#facc15;
 color:#111;
 }
 
-.absent-day{
-background:#ef4444;
-color:white;
-}
-
-/* Holiday */
-.holiday-day{
-background:#3b82f6;
-color:white;
-}
-
-/* Weekly Off */
-.weekly-day{
-background:#e5e7eb;
-color:#374151;
-}
-
-/* Leave Future */
 .leave-day{
 background:#a855f7;
 color:white;
 }
 
-/* Today */
+.holiday-day{
+background:#3b82f6;
+color:white;
+}
+
+.weekly-day{
+background:#e5e7eb;
+color:#374151;
+}
+
 .today{border:3px solid #2563eb;}
 
-/* Legend */
 .calendar-legend{
+
 display:flex;
 flex-wrap:wrap;
 gap:12px;
-margin-top:15px;
+margin-top:18px;
+font-size:12px;
+
 }
 
 .legend-item{
+
 display:flex;
 align-items:center;
 gap:6px;
-font-size:12px;
+
 }
 
-
 .legend-color{
+
 width:14px;
 height:14px;
 border-radius:50%;
+
 }
 
-
-/* Detail */
-
 .detail-panel{
+
 margin-top:20px;
 background:white;
 padding:20px;
-border-radius:25px;
+border-radius:22px;
 box-shadow:0 8px 20px rgba(0,0,0,.08);
-}
 
+}
 
 .detail-panel h3{
+
 margin-top:0;
 font-size:18px;
+   
 }
 
-
 .leave-btn{
+
 margin-top:15px;
 width:100%;
 padding:12px;
 border:0;
 border-radius:15px;
-background:#ddd;
-color:#777;
+background:#2563eb;
+color:white;
 font-size:14px;
+
 }
 
 /* =====================================================
