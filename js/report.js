@@ -37,8 +37,10 @@ type=="attendance"
 
 if(type=="attendance")
 searchReport();
-else
+else{
+initLeaveModule();
 loadMyLeave();
+}
 
 }
 
@@ -133,117 +135,229 @@ ${r.status}
 }
 
 // ===============================
-// LEAVE
+// ENTERPRISE LEAVE MODULE
 // ===============================
+let currentLeaveMode="";
+
+function initLeaveModule(){
+
+const user=JSON.parse(localStorage.user||"{}");
+let html="";
+if(user.role=="Employee"){
+html+=`
+<button onclick="loadMyLeave()">
+My Leave
+</button>
+
+<button onclick="loadLeaveBalance()">
+Balance
+</button>
+`;
+}
+
+if(user.role=="Supervisor" ||user.role=="Admin"){
+html+=`
+<button onclick="loadPendingLeave()">
+Pending Approval
+</button>
+
+<button onclick="loadLeaveReport()">
+Leave Report
+</button>
+
+<button onclick="loadLeaveBalance()">
+Balance
+</button>
+`;
+}
+
+leaveTabs.innerHTML=html;
+
+}
+
 async function loadMyLeave(){
 
-const res=
-await apiGet({
-action:"getLeaveHistory"
-});
+const res=await apiGet({action:"getLeaveHistory"});
+const rows=res.data||[];
 
 setSummary(
-"Total Leave",
+"Total",
 "Pending",
 "Approved",
 "Rejected",
-0,0,0,0
+rows.length,
+rows.filter(x=>x.status=="Pending").length,
+rows.filter(x=>x.status=="Approved").length,
+rows.filter(x=>x.status=="Rejected").length
 );
 
 reportResult.innerHTML=
-(res.data||[]).map(r=>`
-
+rows.map(r=>`
 <div class="leave-card">
-
 <b>${r.leave_type}</b>
 
-<p>
-${r.start_date}
-~
-${r.end_date}
-</p>
+<p>${r.start_date}~${r.end_date}</p>
+<p>Days :${r.days}</p>
+<span class="badge">${r.status}</span>
+<p>${r.reason||""}</p>
 
-<p>
-Days :
-${r.days}
-</p>
+${(r.status=="Pending"||r.status=="Approved")?
+`
+<button
+onclick="cancelMyLeave('${r.leave_id}')">
+Cancel
+</button>
+`
+:""
+}
 
-<span class="badge">
-${r.status}
-</span>
+</div>`).join("")||"No Leave";
 
-<p>
-${r.reason||""}
-</p>
+}
 
-</div>
+async function cancelMyLeave(id){
 
-`).join("")||"No Leave";
+if(!confirm("Cancel this leave?"))
+return;
+
+const r=await apiPost({
+action:"cancelLeave",
+leave_id:id
+});
+
+toast(r.message);
+loadMyLeave();
 
 }
 
 async function loadPendingLeave(){
 
-const res=
-await apiGet({
+const r=await apiGet({
 action:"getLeaveHistory"
 });
 
-let rows=
-(res.data||[])
-.filter(x=>x.status=="Pending");
+const user=JSON.parse(localStorage.user);
+let rows=r.data||[];
 
-renderLeave(rows);
+rows=rows.filter(x=>x.status=="Pending");
+
+renderPendingLeave(rows);
+
+}
+
+function renderPendingLeave(rows){
+
+reportResult.innerHTML=
+rows.map(x=>`
+<div class="leave-card">
+<b>${x.employee_name}</b>
+
+<p>${x.leave_type}</p>
+<p>${x.start_date}~${x.end_date}</p>
+<p>Days:${x.days}</p>
+
+<button
+onclick="approveLeave('${x.leave_id}')">
+Approve
+</button>
+
+<button
+onclick="rejectLeave('${x.leave_id}')">
+Reject
+</button>
+
+</div>
+`).join("")||"No Pending Leave";
+
+}
+
+async function approveLeave(id){
+
+const r=await apiPost({
+action:"approveLeave",
+leave_id:id
+});
+
+toast(r.message);
+
+loadPendingLeave();
+
+}
+
+async function rejectLeave(id){
+
+let reason=prompt("Reject Reason");
+
+const r=await apiPost({
+action:"rejectLeave",
+leave_id:id,
+reason
+});
+
+toast(r.message);
+
+loadPendingLeave();
 
 }
 
 async function loadLeaveBalance(){
 
-const res=
-await apiGet({
+const r=await apiGet({
 action:"getLeaveBalance"
 });
 
-renderLeave(
-res.data||[],
-true
-);
+renderLeaveBalance(r.data||[]);
 
 }
 
-function renderLeave(rows,balance=false){
+function renderLeaveBalance(rows){
+
+reportResult.innerHTML=
+rows.map(x=>`
+<div class="balance-card">
+<b>${x.leave_type}</b>
+
+<p>Entitled :${x.entitled}
+<br>
+Used :${x.used}
+<br>
+Pending :${x.pending}
+<br>
+Balance :<strong>${x.balance}</strong>
+</p>
+</div>
+`).join("")||"No Balance";
+
+}
+
+async function loadLeaveReport(){
+
+const r=await apiGet({
+action:"getLeaveReport",
+from:
+fromDate.value||"",
+
+to:
+toDate.value||""
+});
+
+renderLeaveReport(r.records||[]);
+
+}
+
+function renderLeaveReport(rows){
 
 reportResult.innerHTML=
 rows.map(r=>`
+<div class="leave-card">
 
-<div class="balance-card">
-
-<b>
-${r.leave_type}
-</b>
-
-
-<p>
-
-${balance?
-
-"Entitled : "+r.entitled+
-"<br>Used : "+r.used+
-"<br>Balance : "+r.balance
-
-:
-
-r.start_date+" ~ "+r.end_date+
-"<br>Days : "+r.days+
-"<br>Status : "+r.status
-
-}
-
-</p>
-
+<b>${r.employee_name}</b>
+<p>${r.leave_type}</p>
+<p>${r.start_date}~${r.end_date}</p>
+<p>Branch:${r.branch_name}</p>
+<p>Status:${r.status}</p>
 
 </div>
-
 
 `).join("")||"No Record";
 
