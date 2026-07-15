@@ -1,4 +1,4 @@
-window.currentMonth =window.currentMonth || getCurrentMonth();
+window.currentMonth=getCurrentMonth();
 window.calendarData={attendance:[],holiday:[],weeklyOff:[],leave:[]};
 
 function getCurrentMonth(){
@@ -6,12 +6,20 @@ return new Date()
 .toLocaleDateString("en-CA",{timeZone:"Asia/Kuala_Lumpur"}).slice(0,7);
 }
 
+function formatMonthTitle(month){
+
+const [y,m]=month.split("-");
+const date=new Date(y,Number(m)-1,1);
+return date.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+
+}
+
 function loadCalendar(){
 
 const user=JSON.parse(localStorage.getItem("user")||"{}");
 if(!user.employee_id)return;
 
-monthTitle.textContent=currentMonth;
+monthTitle.textContent=formatMonthTitle(currentMonth);
 
 apiGet({
 action:"getCalendarData",
