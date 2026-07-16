@@ -21,10 +21,9 @@ email:profileData.email,
 address:profileData.address,
 position:profileData.position,
 department:profileData.department,
-branch:
-profileData.working_branch_name||
-profileData.default_branch_name||
-"-",
+defaultBranch:profileData.default_branch_name,
+workingBranch:profileData.working_branch_name,
+assignment:profileData.assignment?"YES":"NO",
 joinDate:profileData.join_date,
 role:profileData.role
 };
