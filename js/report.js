@@ -1,42 +1,40 @@
+/* =====================================================
+   REPORT ENGINE V4 ENTERPRISE COMPACT
+===================================================== */
+
 let reportType="attendance";
 let reportRows=[];
 let reportUser={};
 
 
-/* =========================
- INIT
-========================= */
+/* =====================================================
+   INIT
+===================================================== */
 
 async function loadReport(){
 
 reportUser=
 JSON.parse(localStorage.user||"{}");
 
-
 initFilter();
-
 
 switchReport("attendance");
 
 }
 
 
-
-/* =========================
- FILTER
-========================= */
-
+/* =====================================================
+   FILTER INIT
+===================================================== */
 
 function initFilter(){
 
-let role=reportUser.role;
-
+let role=reportUser.role||"";
 
 let d=new Date();
 
 toDate.value=
 d.toISOString().slice(0,10);
-
 
 d.setDate(1);
 
@@ -45,54 +43,36 @@ d.toISOString().slice(0,10);
 
 
 
-// Employee Filter
-
-if(role!="Employee"){
+/* Employee */
 
 employeeBox.innerHTML=
-`
-<input 
-id="employeeID"
-placeholder="Employee ID">
-`;
-
-}
-else{
-
-employeeBox.innerHTML="";
-
-}
+role=="Employee"
+?""
+:
+`<input id="employeeID"
+placeholder="Employee ID">`;
 
 
 
-// Branch Filter
+/* Branch */
 
 if(role=="Admin"){
 
 branchBox.innerHTML=
-`
-<select id="branchID">
-
+`<select id="branchID">
 <option value="ALL">
 ALL BRANCH
 </option>
-
-</select>
-`;
+</select>`;
 
 loadBranchOption();
 
 }
 
-
 else if(role=="Supervisor"){
 
 branchBox.innerHTML=
-`
-<input 
-value="${reportUser.branch_id}"
-readonly>
-`;
+`<input value="${reportUser.branch_id||""}" readonly>`;
 
 }
 
@@ -102,12 +82,13 @@ branchBox.innerHTML="";
 
 }
 
-
 }
 
 
 
-
+/* =====================================================
+   LOAD BRANCH
+===================================================== */
 
 async function loadBranchOption(){
 
@@ -117,38 +98,28 @@ action:"getBranches"
 });
 
 
-let html=
+branchID.innerHTML=
 `
 <option value="ALL">
 ALL BRANCH
 </option>
-`;
-
-
-(r.data||[]).forEach(b=>{
-
-html+=
+`+
+(r.data||[])
+.map(b=>
 `
 <option value="${b.branch_id}">
 ${b.name}
 </option>
-`;
-
-});
-
-
-branchID.innerHTML=html;
+`
+).join("");
 
 }
 
 
 
-
-
-/* =========================
- SWITCH
-========================= */
-
+/* =====================================================
+   SWITCH
+===================================================== */
 
 function switchReport(type){
 
@@ -157,14 +128,12 @@ reportType=type;
 
 attendanceMode.style.display=
 type=="attendance"
-?"block"
-:"none";
+?"block":"none";
 
 
 leaveMode.style.display=
 type=="leave"
-?"block"
-:"none";
+?"block":"none";
 
 
 reportTitle.innerHTML=
@@ -184,149 +153,96 @@ loadAttendanceDashboard();
 
 else{
 
-
 initLeaveModule();
 
-
 }
 
 }
 
-
-
-
-
-/* =========================
- ATTENDANCE DASHBOARD
-========================= */
+/* =====================================================
+   ATTENDANCE DASHBOARD
+===================================================== */
 
 
 async function loadAttendanceDashboard(){
 
-
-let params={
-
-action:
-"getAttendanceReportDashboard",
-
-from:
-fromDate.value,
-
-to:
-toDate.value
-
+let p={
+action:"getAttendanceReportDashboard",
+from:fromDate.value,
+to:toDate.value
 };
 
-
-
-addFilter(params);
-
+addFilter(p);
 
 
 const r=
-await apiGet(params);
-
+await apiGet(p);
 
 
 let d=r.data||{};
 
 
-presentCount.innerHTML=
-d.present||0;
+presentCount.innerHTML=d.present||0;
 
+lateCount.innerHTML=d.late||0;
 
-lateCount.innerHTML=
-d.late||0;
+leaveCount.innerHTML=d.leave||0;
 
+holidayCount.innerHTML=d.holiday||0;
 
-leaveCount.innerHTML=
-d.leave||0;
+weeklyOffCount.innerHTML=d.weeklyOff||0;
 
-
-holidayCount.innerHTML=
-d.holiday||0;
-
-
-weeklyOffCount.innerHTML=
-d.weeklyOff||0;
-
-
-absentCount.innerHTML=
-d.absent||0;
-
-
+absentCount.innerHTML=d.absent||0;
 
 }
 
 
+
+/* =====================================================
+   FILTER BUILDER
+===================================================== */
 
 function addFilter(p){
 
-
-if(
-reportUser.role!="Employee"
-&&
-employeeID
-){
-
+if(employeeID)
 p.employee=
 employeeID.value||"";
 
-}
 
-
-
-if(branchID){
-
+if(branchID)
 p.branch=
-branchID.value;
+branchID.value||"";
 
 }
 
 
-}
 
-
-
-
-/* =========================
- SEARCH ATTENDANCE
-========================= */
-
+/* =====================================================
+   SEARCH
+===================================================== */
 
 async function searchReport(){
 
-
-if(reportType=="attendance"){
-
+if(reportType=="attendance")
 await loadAttendance();
 
-
-}
-
-else{
-
+else
 await loadLeaveReport();
 
 }
 
 
-}
 
-
-
+/* =====================================================
+   ATTENDANCE RECORD
+===================================================== */
 
 async function loadAttendance(){
 
-
 let p={
-
 action:"getReport",
-
 from:fromDate.value,
-
 to:toDate.value
-
 };
 
 
@@ -343,14 +259,15 @@ r.records||[];
 
 renderAttendance();
 
-
 }
 
 
 
+/* =====================================================
+   RENDER
+===================================================== */
 
 function renderAttendance(){
-
 
 if(!reportRows.length){
 
@@ -363,25 +280,28 @@ return;
 
 
 reportResult.innerHTML=
-
-
 reportRows.map(r=>`
 
 <div class="report-card">
 
-
 <b>
-${r.employee_name}
+${r.employee_name||""}
 </b>
 
-
 <p>
-${r.date}
+${r.date||""}
 </p>
 
+<p>
+Branch :
+${r.working_branch_name||""}
+</p>
 
 <p>
-${r.status}
+Status :
+<span class="badge">
+${r.status||""}
+</span>
 </p>
 
 
@@ -405,34 +325,28 @@ ${r.workHours||0}
 
 </div>
 
-
 `).join("");
 
 }
 
-
-
-
-/* =========================
- LEAVE MODULE
-========================= */
+/* =====================================================
+   LEAVE MODULE
+===================================================== */
 
 
 function initLeaveModule(){
 
-
+let r=reportUser.role;
 let html="";
 
 
-if(reportUser.role=="Employee"){
-
+if(r=="Employee"){
 
 html+=`
 
 <button onclick="loadMyLeave()">
 My Leave
 </button>
-
 
 <button onclick="loadLeaveBalance()">
 Balance
@@ -443,13 +357,7 @@ Balance
 }
 
 
-
-if(
-reportUser.role=="Supervisor"
-||
-reportUser.role=="Admin"
-){
-
+if(r=="Supervisor"||r=="Admin"){
 
 html+=`
 
@@ -472,125 +380,116 @@ Balance
 }
 
 
-
 leaveTabs.innerHTML=html;
 
 
-
-if(reportUser.role=="Employee")
+if(r=="Employee")
 loadMyLeave();
-
 
 }
 
 
 
+/* =====================================================
+   MY LEAVE
+===================================================== */
 
 
 async function loadMyLeave(){
 
-
 const r=
 await apiGet({
-
-action:
-"getLeaveHistory"
-
+action:"getLeaveHistory"
 });
 
 
-renderLeave(r.data||[]);
+let rows=r.data||[];
 
+
+setLeaveSummary(rows);
+
+
+renderLeave(rows);
 
 }
 
 
 
+/* =====================================================
+   PENDING APPROVAL
+===================================================== */
 
 
 async function loadPendingLeave(){
 
-
 const r=
 await apiGet({
 
-action:
-"getLeaveReport",
+action:"getLeaveReport",
 
-from:
-fromDate.value,
+from:fromDate.value,
 
-to:
-toDate.value
+to:toDate.value
 
 });
 
 
 let rows=
 (r.records||[])
-.filter(
-x=>x.status=="Pending"
-);
+.filter(x=>x.status=="Pending");
 
 
+setLeaveSummary(rows);
 
-reportResult.innerHTML=
-
-rows.map(x=>`
-
-<div class="leave-card">
-
-
-<b>
-${x.employee_name}
-</b>
-
-
-<p>
-${x.leave_type}
-</p>
-
-
-<p>
-${x.start_date}
-~
-${x.end_date}
-</p>
-
-
-<button onclick="
-approveLeave('${x.leave_id}')
-">
-Approve
-</button>
-
-
-<button onclick="
-rejectLeave('${x.leave_id}')
-">
-Reject
-</button>
-
-
-</div>
-
-
-`).join("")||"No Pending";
+renderPendingLeave(rows);
 
 }
 
 
 
+/* =====================================================
+   LEAVE SUMMARY
+===================================================== */
+
+
+function setLeaveSummary(rows){
+
+sum1.innerHTML=
+rows.length;
+
+sum2.innerHTML=
+rows.filter(x=>x.status=="Pending").length;
+
+sum3.innerHTML=
+rows.filter(x=>x.status=="Approved").length;
+
+sum4.innerHTML=
+rows.filter(x=>x.status=="Rejected").length;
+
+
+s1.innerHTML="Total";
+
+s2.innerHTML="Pending";
+
+s3.innerHTML="Approved";
+
+s4.innerHTML="Rejected";
+
+}
+
+
+
+/* =====================================================
+   APPROVE / REJECT
+===================================================== */
 
 
 async function approveLeave(id){
 
-
 let r=
 await apiPost({
 
-action:
-"approveLeave",
+action:"approveLeave",
 
 leave_id:id
 
@@ -605,10 +504,7 @@ loadPendingLeave();
 
 
 
-
-
 async function rejectLeave(id){
-
 
 let reason=
 prompt("Reject Reason");
@@ -617,8 +513,7 @@ prompt("Reject Reason");
 let r=
 await apiPost({
 
-action:
-"rejectLeave",
+action:"rejectLeave",
 
 leave_id:id,
 
@@ -629,48 +524,26 @@ reason
 
 toast(r.message);
 
-
 loadPendingLeave();
 
 }
 
 
 
-
-
-async function loadLeaveBalance(){
-
-
-const r=
-await apiGet({
-
-action:
-"getLeaveBalance"
-
-});
-
-
-renderLeave(r.data||[]);
-
-
-}
-
-
+/* =====================================================
+   LEAVE REPORT
+===================================================== */
 
 
 async function loadLeaveReport(){
 
-
 let p={
 
-action:
-"getLeaveReport",
+action:"getLeaveReport",
 
-from:
-fromDate.value,
+from:fromDate.value,
 
-to:
-toDate.value
+to:toDate.value
 
 };
 
@@ -682,26 +555,104 @@ const r=
 await apiGet(p);
 
 
-renderLeave(r.records||[]);
+let rows=
+r.records||[];
 
+
+setLeaveSummary(rows);
+
+renderLeave(rows);
 
 }
 
 
 
+/* =====================================================
+   BALANCE
+===================================================== */
+
+
+async function loadLeaveBalance(){
+
+const r=
+await apiGet({
+
+action:"getLeaveBalance"
+
+});
+
+
+renderBalance(r.data||[]);
+
+}
+
+
+
+/* =====================================================
+   RENDER LEAVE
+===================================================== */
+
 
 function renderLeave(rows){
 
-
 reportResult.innerHTML=
-
-
 rows.map(r=>`
 
 <div class="leave-card">
 
 <b>
 ${r.employee_name||""}
+</b>
+
+
+<p>
+${r.leave_type||""}
+</p>
+
+
+<p>
+${r.start_date}
+~
+${r.end_date}
+</p>
+
+
+<p>
+Days :
+${r.days||0}
+</p>
+
+
+<p>
+Status :
+<span class="badge">
+${r.status}
+</span>
+</p>
+
+
+</div>
+
+`).join("")||"No Record";
+
+}
+
+
+
+/* =====================================================
+   RENDER PENDING
+===================================================== */
+
+
+function renderPendingLeave(rows){
+
+reportResult.innerHTML=
+rows.map(r=>`
+
+<div class="leave-card">
+
+<b>
+${r.employee_name}
 </b>
 
 
@@ -718,34 +669,86 @@ ${r.end_date}
 
 
 <p>
-Days:
+Days :
 ${r.days}
 </p>
 
 
-<p>
-Status:
-${r.status}
-</p>
+<button onclick="
+approveLeave('${r.leave_id}')
+">
+Approve
+</button>
+
+
+<button onclick="
+rejectLeave('${r.leave_id}')
+">
+Reject
+</button>
 
 
 </div>
 
-
-`).join("")||"No Record";
-
+`).join("")||"No Pending Leave";
 
 }
 
 
 
-/* =========================
-   ENTERPRISE EXPORT ENGINE
-========================= */
+/* =====================================================
+   RENDER BALANCE
+===================================================== */
+
+
+function renderBalance(rows){
+
+reportResult.innerHTML=
+rows.map(r=>`
+
+<div class="balance-card">
+
+<b>
+${r.leave_type}
+</b>
+
+
+<p>
+Entitled :
+${r.entitled}
+</p>
+
+<p>
+Used :
+${r.used}
+</p>
+
+<p>
+Pending :
+${r.pending}
+</p>
+
+
+<p>
+Balance :
+<strong>
+${r.balance}
+</strong>
+</p>
+
+
+</div>
+
+`).join("")||"No Balance";
+
+}
+
+/* =====================================================
+   EXPORT ENGINE
+===================================================== */
 
 
 function buildExportParams(){
-
 
 let p={
 
@@ -758,27 +761,14 @@ toDate.value
 };
 
 
-if(reportUser.role!="Employee"){
-
-
-if(employeeID){
-
+if(employeeID)
 p.employee=
 employeeID.value||"";
 
-}
 
-
-}
-
-
-if(branchID){
-
+if(branchID)
 p.branch=
-branchID.value;
-
-}
-
+branchID.value||"";
 
 
 return p;
@@ -787,11 +777,12 @@ return p;
 
 
 
-
+/* =====================================================
+   RUN EXPORT
+===================================================== */
 
 
 async function runExport(action){
-
 
 let p=
 buildExportParams();
@@ -801,10 +792,8 @@ p.action=
 action;
 
 
-
 const r=
 await apiGet(p);
-
 
 
 if(!r){
@@ -835,12 +824,10 @@ if(r.file){
 let a=
 document.createElement("a");
 
-a.href=
-r.file;
+a.href=r.file;
 
 a.download=
-r.filename||
-"Report";
+r.filename||"Report";
 
 a.click();
 
@@ -855,17 +842,13 @@ r.message||
 "Export Completed"
 );
 
-
 }
 
 
 
-
-
-
-/* =========================
- Attendance Export
-========================= */
+/* =====================================================
+   ATTENDANCE EXPORT
+===================================================== */
 
 
 function exportAttendancePDF(){
@@ -898,11 +881,9 @@ runExport(
 
 
 
-
-
-/* =========================
- Leave Export
-========================= */
+/* =====================================================
+   LEAVE EXPORT
+===================================================== */
 
 
 function exportLeavePDF(){
@@ -935,59 +916,41 @@ runExport(
 
 
 
-
-
-
-
-/* =========================
- Button Router
-========================= */
+/* =====================================================
+   BUTTON ROUTER
+===================================================== */
 
 
 function exportPDF(){
 
-
-if(reportType=="attendance")
-
-exportAttendancePDF();
-
-else
-
+reportType=="attendance"
+?
+exportAttendancePDF()
+:
 exportLeavePDF();
 
-
 }
-
 
 
 
 function exportExcel(){
 
-
-if(reportType=="attendance")
-
-exportAttendanceExcel();
-
-else
-
+reportType=="attendance"
+?
+exportAttendanceExcel()
+:
 exportLeaveExcel();
-
 
 }
 
 
 
-
 function exportCSV(){
 
-
-if(reportType=="attendance")
-
-exportAttendanceCSV();
-
-else
-
+reportType=="attendance"
+?
+exportAttendanceCSV()
+:
 exportLeaveCSV();
-
 
 }
