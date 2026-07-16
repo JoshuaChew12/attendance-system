@@ -1083,20 +1083,6 @@ font-weight:600;
 #btnSubmit:disabled{background:#94a3b8;}
 
 /* ==========================
-   SUMMARY
-========================== */
-.leave-summary{margin-top:20px;}
-.leave-summary .leave-card{
-
-background:white;
-padding:16px;
-border-radius:18px;
-box-shadow:0 5px 15px rgba(0,0,0,.08);
-margin-bottom:15px;
-
-}
-
-/* ==========================
    MOBILE
 ========================== */
 @media(max-width:480px){
