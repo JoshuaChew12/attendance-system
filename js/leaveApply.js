@@ -11,14 +11,14 @@ await loadLeaveSummary();
 
 function bindLeaveEvent(){
 
-startDate.onchange=calculateDays;
-endDate.onchange=calculateDays;
+startDate.onchange = calculateDays;
+endDate.onchange = calculateDays;
 
 document
 .querySelectorAll('input[name="halfDay"]')
-.forEach(x=>{x.onchange=calculateDays;});
+.forEach(x=>{x.onchange = calculateDays;});
 
-leaveFile.onchange=previewFile;
+leaveFile.onchange = previewFile;
 
 }
 
@@ -74,34 +74,33 @@ Balance :<strong>${x.balance}</strong>
 
 }
 
-function calculateDays(){
+async function calculateDays(){
 
-let s=startDate.value;
-let e=endDate.value;
+const start = startDate.value;
+const end = endDate.value;
 
-if(!s||!e){leaveDuration.innerHTML="0 Day";
-return;
-}
+if(!start || !end){leaveDuration.innerHTML = "0 Day";
+return;}
+if(start > end){leaveDuration.innerHTML = "Invalid Date";
+return;}
 
-if(s>e){leaveDuration.innerHTML="Invalid Date";
-return;
-}
+const halfDay = document.querySelector('input[name="halfDay"]:checked').value;
 
-let d=new Date(s);
-let end=new Date(e);
-let days=0;
-while(d<=end){
-days++;
-d.setDate(d.getDate()+1);
-}
+try{
+const r = await apiGet({
+action:"checkLeaveDays",
+start_date:start,
+end_date:end,
+half_day:halfDay
+});
 
-let half=document
-.querySelector('input[name="halfDay"]:checked').value;
+if(!r.success){leaveDuration.innerHTML = r.message || "Error";
+return;}
 
-if(half)
-days-=0.5;
+const days = Number(r.days || 0);
+leaveDuration.innerHTML =days +(days > 1 ? " Days" : " Day");
 
-leaveDuration.innerHTML=days+(days>1?" Days":" Day");
+}catch(err){leaveDuration.innerHTML = "Error";}
 
 }
 
@@ -204,24 +203,9 @@ btnSubmit.innerHTML="Submit Leave";
 
 function calculateLeaveValue(){
 
-let s=startDate.value;
-let e=endDate.value;
-if(!s||!e||s>e)
-return 0;
-
-let d=new Date(s);
-let end=new Date(e);
-let n=0;
-
-while(d<=end){
-n++;
-d.setDate(d.getDate()+1);
-}
-  
-if(document.querySelector('input[name="halfDay"]:checked').value)
-n-=0.5;
-
-return n;
+const text = leaveDuration.innerText || "";
+const value = parseFloat(text);
+return isNaN(value) ? 0 : value;
 
 }
 
