@@ -21,22 +21,19 @@ if(!cameras?.length) throw new Error("No camera found");
 
 // enterprise camera selection
 let cameraId=
-cameras.find(c=>/back|rear|environment/i.test(c.label))?.id
+cameras.find(c=>/back|rear|environment|world/i.test(c.label))?.id
 || cameras[cameras.length-1].id;
 
-await qrScanner.start(
-cameraId,
-{fps:10,qrbox:{width:250,height:250}},
-qrSuccess,
-()=>{}
-);
+await qrScanner.start(cameraId,
+{fps:15,qrbox:{width:250,height:250}},
+qrSuccess,()=>{});
 
 console.log("Camera Started");
 
 }catch(err){
 
 console.log("Camera Error",err);
-showResult("❌",err.message);
+showResult({icon:"❌",title:err.message});
 
 }
 
@@ -49,30 +46,22 @@ function qrSuccess(decodedText){
 
 if(isProcessing)
 return;
-
 isProcessing=true;
-
-scannedBranch =
-decodedText;
+scannedBranch =decodedText;
 
 stopScanner();
 
 // hide camera
-
-document.getElementById(
-"cameraPage"
-).style.display="none";
+document.getElementById("cameraPage").style.display="none";
 
 // show result
-
-document.getElementById(
-"resultPage"
+document.getElementById("resultPage"
 ).style.display="block";
 
-showResult(
-"⏳",
-"Checking..."
-);
+showResult({
+icon:"⏳",
+title:"Checking Attendance..."
+});
 
 autoAttendance();
 
@@ -85,47 +74,26 @@ async function autoAttendance(){
 
 try{
 
-const user =
-JSON.parse(
-localStorage.getItem("user")
-);
+const user =JSON.parse(localStorage.getItem("user"));
+if(!user){throw Error("User not found");}
 
-if(!user){
-
-throw Error(
-"User not found"
-);
-
-}
-
-const status =
-await apiGet({
-action:
-"getTodayAttendance",
-});
-
-if(
-status.success &&
-status.exists
-){
-
-await checkOut(user);
-
+const status =await apiGet({
+action:"getTodayAttendance",});
+if(status.success &&status.exists){
+await checkOut();
 }
 
 else{
-
 await checkIn(user);
-
 }
 
 }
 catch(err){
 
-showResult(
-"❌",
-err.message
-);
+showResult({
+icon:"❌",
+title:err.message
+});
 
 }
 
@@ -138,27 +106,30 @@ async function checkIn(){
 
 try{
 
-showResult("⏳","Getting GPS...");
+showResult({icon:"⏳",title:"Getting GPS..."});
 
 const gps=await getLocation();
 
 const result=await apiPost({
-
 action:"checkIn",
 qr:scannedBranch,
 lat:gps.lat,
 lng:gps.lng
-
 });
 
-showResult(
-result.success?"✅":"❌",
-result.success?"Check In Successful":result.message
-);
-
+showResult({
+icon:"✅",
+title:"CHECK IN SUCCESS",
+name:result.data.name,
+branch:result.data.branch,
+time:result.data.checkIn,
+status:result.data.status,
+late:result.data.lateMinutes
+});
+  
 }catch(err){
 
-showResult("❌",err.message);
+showResult({icon:"❌",title:err.message});
 
 }
 
@@ -167,57 +138,40 @@ showResult("❌",err.message);
 // =====================================================
 // CHECK OUT
 // =====================================================
-async function checkOut(user){
+async function checkOut(){
 
 try{
 
-showResult(
-"⏳",
-"Checking Out..."
-);
+showResult({icon:"⏳",title:"Checking Out..."});
 
-const gps =
-await getLocation();
+const gps =await getLocation();
 
-const result =
-await apiPost({
+const result =await apiPost({
 action:"checkOut",
-lat:
-gps.lat,
-lng:
-gps.lng
-
+lat:gps.lat,
+lng:gps.lng
 });
 
 if(result.success){
 
-showResult(
-"✅",
-"Check Out Successful\nWork Hours: "
-+
-result.data.workHours
-+
-" hrs"
-);
+showResult({
+icon:"✅",
+title:"CHECK OUT SUCCESS",
+time:result.data.checkOut,
+workHours:result.data.workHours,
+late:result.data.lateMinutes,
+earlyLeave:result.data.earlyLeave
+});
 
 }
 else{
-
-showResult(
-"❌",
-result.message
-);
-
+showResult({icon:"❌",title:result.message});
 }
 
 }
+  
 catch(err){
-
-showResult(
-"❌",
-err.message
-);
-
+showResult({icon:"❌",title:err.message});
 }
 
 }
@@ -228,50 +182,34 @@ err.message
 function getLocation(){
 
 return new Promise(
-
 (resolve,reject)=>{
 
 if(!navigator.geolocation){
-
-reject(
-new Error(
-"GPS not supported"
-)
-);
-
+reject(new Error("GPS not supported"));
 return;
-
 }
 
 navigator.geolocation.getCurrentPosition(
-
 (position)=>{
 
 resolve({
-lat:
-position.coords.latitude,
-lng:
-position.coords.longitude
+lat:position.coords.latitude,
+lng:position.coords.longitude
 });
 
 },
 
 ()=>{
 
-reject(
-
-new Error(
-"GPS permission denied"
-)
-
-);
+reject(new Error("GPS permission denied"));
 
 },
 
 {
 
+maximumAge:0,
 enableHighAccuracy:true,
-timeout:10000
+timeout:15000
 
 }
 
@@ -293,27 +231,17 @@ try{
 if(qrScanner){
 
 await qrScanner.stop();
-
 await qrScanner.clear();
-
 qrScanner=null;
 
-console.log(
-"Camera stopped"
-);
+console.log("Camera stopped");
 
 }
 
 }
 catch(err){
-
-console.log(
-"Stop camera error",
-err
-);
-
+console.log("Stop camera error",err);
 qrScanner=null;
-
 }
 
 }
@@ -321,40 +249,61 @@ qrScanner=null;
 // =====================================================
 // RESULT UI
 // =====================================================
-function showResult(icon,text){
+function showResult(data){
 
-const iconBox =
-document.getElementById(
-"statusIcon"
-);
+document.getElementById("statusIcon").innerHTML =
+data.icon || "📷";
 
-const result =
-document.getElementById(
-"scanResult"
-);
+document.getElementById("scanResult").innerHTML =
+data.title || "";
 
-const time =
-document.getElementById(
-"scanTime"
-);
+document.getElementById("scanDetail").innerHTML = `
 
-if(iconBox)
-iconBox.innerHTML=icon;
+<div class="scan-card">
 
-if(result)
-result.innerHTML=text;
+${data.name ? `
+<div class="scan-name">
+${data.name}
+</div>` : ""}
 
-if(time)
+${data.branch ? `
+<div class="scan-branch">
+${data.branch}
+</div>` : ""}
 
-time.innerHTML =
-new Date()
-.toLocaleTimeString(
-"en-MY",
-{
-timeZone:
-"Asia/Kuala_Lumpur"
-}
-);
+${data.time ? `
+<div class="scan-row">
+<span>Time</span>
+<b>${data.time}</b>
+</div>` : ""}
+
+${data.status ? `
+<div class="scan-row">
+<span>Status</span>
+<b>${data.status}</b>
+</div>` : ""}
+
+${data.late!=null ? `
+<div class="scan-row">
+<span>Late</span>
+<b>${data.late} minute</b>
+</div>` : ""}
+
+${data.workHours!=null ? `
+<div class="scan-row">
+<span>Work Hours</span>
+<b>${Number(data.workHours).toFixed(2)} hrs</b>
+</div>` : ""}
+
+${data.earlyLeave!=null ? `
+<div class="scan-row">
+<span>Early Leave</span>
+<b>${data.earlyLeave}</b>
+</div>` : ""}
+
+</div>
+
+`;
 
 isProcessing=false;
 
@@ -363,8 +312,12 @@ isProcessing=false;
 // =====================================================
 // RESTART
 // =====================================================
-function restartScanner(){
+async function restartScanner(){
 
-location.reload();
+document.getElementById("resultPage").style.display="none";
+document.getElementById("cameraPage").style.display="block";
+isProcessing=false;
+
+await startScanner();
 
 }
