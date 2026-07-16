@@ -1,56 +1,37 @@
 <div class="scan-page">
 
 <!-- CAMERA PAGE -->
-
 <div id="cameraPage">
 
-<h2>
-QR Attendance
-</h2>
+<h2>QR Attendance</h2>
 
 <div id="reader"></div>
 
-<p>
-Please scan branch QR
-</p>
+<p>Please scan branch QR</p>
 
 </div>
 
 <!-- RESULT PAGE -->
-
-<div id="resultPage"
-style="display:none;">
-
+<div id="resultPage" style="display:none;">
 
 <div class="scan-status">
 
 <div id="statusIcon">
-
 📷
-
 </div>
 
-
 <h2 id="scanResult">
-
 Processing...
-
 </h2>
 
-
-<p id="scanTime">
-
-</p>
-
+<!-- showResult() 会填入这里 -->
+<div id="scanDetail"></div>
 
 <button onclick="restartScanner()">
-
 Scan Again
-
 </button>
 
 </div>
-
 
 </div>
 
