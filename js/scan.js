@@ -120,8 +120,8 @@ lng:gps.lng
 showResult({
 icon:"✅",
 title:"CHECK IN SUCCESS",
-name:result.data.employee_name,
-branch:result.data.branch_name,
+name:result.data.name,
+branch:result.data.branch,
 time:result.data.checkIn,
 status:result.data.status,
 late:result.data.lateMinutes
