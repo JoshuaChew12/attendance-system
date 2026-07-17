@@ -681,276 +681,268 @@ margin-top:8px;
    MOBILE OPTIMIZE
 ========================== */
 @media(max-width:480px){
-
 .profile-page{padding:15px;}
 .profile-header h2{font-size:21px;}
 .profile-card p{font-size:14px;}
-
 }
 
-/* ==========================
-REPORT
-========================== */
-.report-page{padding-bottom:90px;}
-.report-filter{
+/* =========================
+REPORT PAGE
+========================= */
+.report-page{
+padding-bottom:90px;
+}
 
+/* =========================
+SWITCH
+========================= */
+.report-switch{
 display:grid;
-gap:12px;
-margin-bottom:20px;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-bottom:15px;
+}
 
+.report-switch button,
+#leaveTabs button{
+height:42px;
+border:0;
+border-radius:12px;
+background:#e5e7eb;
+font-weight:600;
+}
+
+.report-switch button:first-child{
+background:#2563eb;
+color:white;
+}
+
+/* =========================
+FILTER
+========================= */
+.report-filter{
+display:grid;
+gap:10px;
+margin-bottom:15px;
 }
 
 .report-filter input,
+.report-filter select,
 .report-filter button{
-
 height:45px;
 border-radius:12px;
 border:1px solid #ddd;
 padding:0 12px;
 font-size:15px;
-
 }
 
 .report-filter button{
-
-background:#2563eb;
-color:#fff;
-border:none;
-
-}
-
-.report-summary{
-
-display:grid;
-grid-template-columns:repeat(2,1fr);
-gap:15px;
-margin-bottom:20px;
-
-}
-
-.summary-card{
-
-background:#fff;
-padding:18px;
-border-radius:18px;
-text-align:center;
-box-shadow:0 4px 12px rgba(0,0,0,.08);
-
-}
-
-.summary-card p{
-
-margin:0;
-font-size:13px;
-color:#777;
-
-}
-
-.summary-card h2{
-
-margin:8px 0 0;
-font-size:28px;
-color:#2563eb;
-
-}
-
-.report-card{
-
-background:#fff;
-padding:15px;
-border-radius:18px;
-margin-bottom:15px;
-box-shadow:0 4px 12px rgba(0,0,0,.08);
-
-}
-
-.report-head{
-
-display:flex;
-justify-content:space-between;
-align-items:center;
-cursor:pointer;
-
-}
-
-.report-card p{margin:8px 0;}
-.badge{
-
-padding:5px 12px;
-border-radius:20px;
-font-size:12px;
-color:#fff;
-
-}
-.present{background:#16a34a;}
-.late{
-background:#eab308;
-color:#222;
-}
-.absent{background:#dc2626;}
-
-@media(max-width:480px){
-.report-summary{grid-template-columns:1fr 1fr;}
-}
-
-/* ==========================
-REPORT SWITCH
-========================== */
-.report-switch{
-
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:12px;
-margin-bottom:20px;
-
-}
-
-
-.report-switch button,
-.leave-tabs button{
-
-height:42px;
-border:none;
-border-radius:12px;
-background:#e5e7eb;
-font-size:15px;
-font-weight:600;
-
-}
-
-.report-switch button:first-child{
-
 background:#2563eb;
 color:white;
-
+border:0;
 }
 
-/* ==========================
-LEAVE TABS
-========================== */
-.leave-tabs{
-
+/* =========================
+EXPORT
+========================= */
+.report-export{
 display:grid;
 grid-template-columns:repeat(3,1fr);
 gap:10px;
-margin-bottom:20px;
-
+margin-bottom:15px;
 }
 
-.leave-tabs button{background:#f1f5f9;}
-.leave-tabs button:hover{
-
-background:#2563eb;
+.report-export button{
+height:42px;
+border:0;
+border-radius:12px;
+background:#0f766e;
 color:white;
-
+font-weight:600;
 }
 
-/* ==========================
-LEAVE REPORT CARD
-========================== */
-.leave-card{
+/* =========================
+KPI
+========================= */
+#reportKPI{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+margin-bottom:15px;
+}
 
-background:#fff;
+.kpi-item{
+background:white;
+padding:15px;
+border-radius:18px;
+text-align:center;
+box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+
+.kpi-item span{
+font-size:13px;
+color:#777;
+}
+
+.kpi-item b{
+display:block;
+font-size:26px;
+margin-top:6px;
+color:#2563eb;
+}
+
+/* =========================
+RESULT CARD
+========================= */
+.report-card,
+.leave-card,
+.balance-card{
+background:white;
 padding:16px;
 border-radius:18px;
-margin-bottom:15px;
-box-shadow:0 4px 12px rgba(0,0,0,.08);
-
+margin-bottom:12px;
+box-shadow:0 3px 10px rgba(0,0,0,.08);
 }
 
-.leave-title{
-
+.report-head{
 display:flex;
 justify-content:space-between;
 align-items:center;
-font-size:16px;
-font-weight:600;
-
 }
 
-.leave-date{
-
+.report-card p,
+.leave-card p,
+.balance-card p{
+margin:7px 0;
 font-size:14px;
-color:#666;
-margin-top:8px;
-
+color:#555;
 }
 
-.leave-info{
-
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:8px;
-margin-top:12px;
-font-size:14px;
-
+/* =========================
+BADGE
+========================= */
+.badge{
+padding:5px 12px;
+border-radius:20px;
+font-size:12px;
+color:white;
 }
 
-/* ==========================
-LEAVE STATUS
-========================== */
-.pending{
-background:#f59e0b;
-}
-
+.present,
 .approved{
 background:#16a34a;
 }
 
+.late,
+.pending{
+background:#f59e0b;
+color:#222;
+}
+
+.absent,
 .rejected{
 background:#dc2626;
 }
 
-.cancelled{
-background:#64748b;
-}
+.cancelled{background:#64748b;}
 
-/* ==========================
-LEAVE BALANCE CARD
-========================== */
-.balance-card{
-
-background:#fff;
-padding:16px;
-border-radius:18px;
+/* =========================
+LEAVE TAB
+========================= */
+#leaveTabs{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
 margin-bottom:15px;
-box-shadow:0 4px 12px rgba(0,0,0,.08);
-
 }
 
-.balance-header{
+#leaveTabs button:hover{
+background:#2563eb;
+color:white;
+}
 
+/* =========================
+LEAVE BALANCE
+========================= */
+.balance-header{
 display:flex;
 justify-content:space-between;
-font-weight:600;
-
 }
 
 .balance-bar{
-
 height:10px;
 background:#e5e7eb;
 border-radius:10px;
 overflow:hidden;
-margin-top:12px;
-
+margin-top:10px;
 }
 
 .balance-fill{
-
 height:100%;
 background:#2563eb;
-border-radius:10px;
-
 }
 
 .balance-number{
-
 display:flex;
 justify-content:space-between;
-margin-top:10px;
 font-size:13px;
-color:#666;
+color:#777;
+}
+
+/* =========================
+MOBILE
+========================= */
+@media(max-width:480px){
+#leaveTabs{grid-template-columns:1fr;}
+}
+
+/* ===============================
+ EXPORT MODAL
+=============================== */
+.export-modal{
+
+display:none;
+position:fixed;
+top:0;
+left:0;
+right:0;
+bottom:0;
+background:
+rgba(0,0,0,.45);
+z-index:999;
+align-items:center;
+justify-content:center;
+
+}
+
+.export-box{
+
+background:white;
+width:85%;
+max-width:350px;
+border-radius:20px;
+padding:25px;
+text-align:center;
+
+}
+
+#exportLoading{
+
+font-size:18px;
+font-weight:bold;
+
+}
+
+#exportDone button{
+
+margin-top:15px;
+width:100%;
+padding:13px;
+border-radius:12px;
+border:0;
+background:#009688;
+color:white;
+font-weight:bold;
 
 }
 
