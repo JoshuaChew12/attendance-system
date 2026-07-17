@@ -1,9 +1,22 @@
 <div class="report-page">
 
-<h2 id="reportTitle">Attendance Report</h2>
+
+<!-- HEADER -->
+<div class="report-header">
+
+<h2 id="reportTitle">
+Attendance Report
+</h2>
 
 
-<!-- SWITCH -->
+<button onclick="loadReport()">
+↻
+</button>
+
+</div>
+
+
+<!-- REPORT SWITCH -->
 <div class="report-switch">
 
 <button onclick="switchReport('attendance')">
@@ -16,24 +29,64 @@ Leave
 
 </div>
 
-<!-- FILTER -->
+
+
+
+<!-- FILTER PANEL -->
 <div class="report-filter">
 
-<input type="date" id="fromDate">
-<input type="date" id="toDate">
+<div class="filter-row">
 
-<div id="branchBox"></div>
-<div id="employeeBox"></div>
+<div>
+<label>
+From
+</label>
 
-<button onclick="searchReport()">
-Search
-</button>
+<input 
+type="date"
+id="fromDate">
 
 </div>
 
 
-<!-- EXPORT -->
-<div class="report-export">
+<div>
+
+<label>
+To
+</label>
+
+<input
+type="date"
+id="toDate">
+
+</div>
+
+
+</div>
+
+<div id="branchBox"></div>
+<div id="employeeBox"></div>
+
+<!-- Leave Filter -->
+<div id="leaveFilter"></div>
+
+<button
+class="search-btn"
+onclick="searchReport()">
+
+Search
+
+</button>
+
+</div>
+
+<!-- KPI -->
+<div class="report-kpi-box">
+<div id="reportKPI"></div>
+</div>
+
+<!-- EXPORT TOOLBAR -->
+<div class="report-toolbar">
 
 <button onclick="exportPDF()">
 PDF
@@ -49,14 +102,12 @@ CSV
 
 </div>
 
-
-<!-- LEAVE TAB -->
-<div id="leaveTabs"></div>
-
-<!-- KPI -->
-<div id="reportKPI"></div>
+<!-- LEAVE ACTION -->
+<div id="leaveTabs">
+</div>
 
 <!-- RESULT -->
-<div id="reportResult"></div>
+<div id="reportResult">
+</div>
 
 </div>
