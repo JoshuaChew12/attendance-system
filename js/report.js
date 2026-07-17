@@ -334,34 +334,13 @@ let res=await apiGet({action:"getLeaveHistory"});
 let rows=res.data||[];
 
 renderKPI([
+  {label:"Total", value:rows.length},
+  {label:"Pending", value:rows.filter(x=>x.status=="Pending").length},
+  {label:"Approved", value:rows.filter(x=>x.status=="Approved").length},
+  {label:"Rejected", value:rows.filter(x=>x.status=="Rejected").length},
+  {label:"Cancelled", value:rows.filter(x=>x.status=="Cancelled").length}
+]);
 
-["Total",rows.length],
-
-["Pending",
-rows.filter(x=>x.status=="Pending").length
-],
-
-["Approved",
-rows.filter(x=>x.status=="Approved").length
-],
-
-["Rejected",
-rows.filter(x=>x.status=="Rejected").length
-],
-
-["Cancelled",
-rows.filter(x=>x.status=="Cancelled").length
-
-]
-
-.map(x=>({
-
-label:x[0],
-value:x[1]||0
-
-}))
-
-);
 
 renderLeave(rows);
 
