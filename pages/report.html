@@ -2,7 +2,6 @@
 
 
 <!-- HEADER -->
-
 <div class="report-header">
 
 <div>
@@ -22,16 +21,12 @@ Attendance Report
 
 <button 
 onclick="switchReport('attendance')">
-
 Attendance
-
 </button>
 
 <button 
 onclick="switchReport('leave')">
-
 Leave
-
 </button>
 
 </div>
@@ -45,9 +40,7 @@ class="kpi-grid">
 <!-- FILTER -->
 <div class="report-card filter-card">
 
-<h3>
-Filter
-</h3>
+<h3>Filter</h3>
 
 <div class="date-row">
 
@@ -58,10 +51,10 @@ id="fromDate">
 <input 
 type="date"
 id="toDate">
-
 </div>
 
 <div id="branchBox"></div>
+
 <div id="employeeBox"></div>
 
 <button 
@@ -77,9 +70,7 @@ Search
 <!-- EXPORT -->
 
 <div class="report-card">
-
 <h3>Export Report</h3>
-
 <div class="export-grid">
 
 <button onclick="exportPDF()">
@@ -99,16 +90,48 @@ CSV
 </div>
 
 <!-- LEAVE MENU -->
+
 <div id="leaveTabs"
 class="leave-menu">
 
 </div>
 
 <!-- RESULT -->
+
 <div id="reportResult">
 
 </div>
 
+<!-- EXPORT MODAL -->
+<div id="exportModal"
+class="export-modal">
 
+<div class="export-box">
+
+<div id="exportLoading">
+Generating Report...
+</div>
+
+<div id="exportDone"
+style="display:none">
+
+<h3>
+Report Ready
+</h3>
+
+<p id="exportFileName"></p>
+
+<button 
+onclick="openExportFile()">
+
+Open Download
+
+</button>
+
+</div>
+
+</div>
+
+</div>
 
 </div>
