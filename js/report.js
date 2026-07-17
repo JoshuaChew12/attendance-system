@@ -359,7 +359,9 @@ rows.filter(x=>x.status=="Cancelled").length
 label:x[0],
 value:x[1]||0
 
-})));
+}))
+
+);
 
 renderLeave(rows);
 
