@@ -1,10 +1,9 @@
 <div class="report-page">
 
-<h2 id="reportTitle">
-Attendance Report
-</h2>
+<h2 id="reportTitle">Attendance Report</h2>
 
-<!-- ================= SWITCH ================= -->
+
+<!-- SWITCH -->
 <div class="report-switch">
 
 <button onclick="switchReport('attendance')">
@@ -17,22 +16,14 @@ Leave
 
 </div>
 
-<!-- ================= FILTER ================= -->
+<!-- FILTER -->
 <div class="report-filter">
 
-<label>From</label>
-<input type="date"id="fromDate">
+<input type="date" id="fromDate">
+<input type="date" id="toDate">
 
-<label>To</label>
-<input type="date"id="toDate">
-
-<!-- Employee -->
-<div id="employeeBox">
-</div>
-
-<!-- Branch -->
-<div id="branchBox">
-</div>
+<div id="branchBox"></div>
+<div id="employeeBox"></div>
 
 <button onclick="searchReport()">
 Search
@@ -40,96 +31,64 @@ Search
 
 </div>
 
-<!-- ================= EXPORT ================= -->
-<div class="export-box">
+
+<!-- EXPORT -->
+<div class="report-export">
 
 <button onclick="exportPDF()">
-Download PDF
+PDF
 </button>
 
 <button onclick="exportExcel()">
-Download Excel
+Excel
 </button>
 
 <button onclick="exportCSV()">
-Download CSV
+CSV
 </button>
 
 </div>
 
-<!-- ================= ATTENDANCE ================= -->
-<div id="attendanceMode">
 
+<!-- LEAVE TAB -->
+<div id="leaveTabs"></div>
+
+<!-- SUMMARY -->
 <div class="report-summary">
 
 <div class="summary-card">
-<p>Present</p>
-<h2 id="presentCount">
-0
-</h2>
+<p id="s1">Present</p>
+<h2 id="sum1">0</h2>
 </div>
 
 <div class="summary-card">
-<p>Late</p>
-<h2 id="lateCount">
-0
-</h2>
+<p id="s2">Late</p>
+<h2 id="sum2">0</h2>
 </div>
 
 <div class="summary-card">
-<p>Leave</p>
-<h2 id="leaveCount">
-0
-</h2>
+<p id="s3">Leave</p>
+<h2 id="sum3">0</h2>
 </div>
 
 <div class="summary-card">
-<p>Holiday</p>
-<h2 id="holidayCount">
-0
-</h2>
+<p id="s4">Holiday</p>
+<h2 id="sum4">0</h2>
 </div>
 
 <div class="summary-card">
-<p>Weekly Off</p>
-<h2 id="weeklyOffCount">
-0
-</h2>
+<p id="s5">Weekly Off</p>
+<h2 id="sum5">0</h2>
 </div>
 
 <div class="summary-card">
-<p>Absent</p>
-<h2 id="absentCount">
-0
-</h2>
+<p id="s6">Absent</p>
+<h2 id="sum6">0</h2>
 </div>
 
 </div>
 
-</div>
-
-<!-- ================= LEAVE ================= -->
-<div id="leaveMode"
-style="display:none"
->
-
-<div 
-class="leave-tabs"
-id="leaveTabs">
-
-</div>
-
-<div 
-class="leave-summary"
-id="leaveSummary">
-
-</div>
-
-</div>
-
-<!-- ================= RESULT ================= -->
-<div id="reportResult">
-
-</div>
+<!-- RESULT -->
+<div id="reportResult"></div>
 
 </div>
