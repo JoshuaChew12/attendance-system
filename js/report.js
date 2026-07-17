@@ -1,5 +1,7 @@
 let reportType="attendance";
 let rows=[];
+let exportURL="";
+let exporting=false;
 
 const user=JSON.parse(localStorage.user||"{}");
 const $=id=>document.getElementById(id);
@@ -400,25 +402,71 @@ function exportCSV(){exportReport("CSV");}
 
 async function exportReport(type){
 
-let action=
-reportType=="attendance"
+if(exporting)
+return;
+
+exporting=true;
+showExportLoading();
+
+let action=reportType=="attendance"
 ?
 "exportAttendance"+type
 :
 "exportLeave"+type;
 
-let r=await apiGet({
-
+try{
+let res=await apiGet({
 action,
 from:$("fromDate").value,
 to:$("toDate").value,
 branch:$("branchID")?.value||"",
 employee_id:$("employeeID")?.value||""
-
 });
 
-if(r.data?.url){window.open(r.data.url);}
-else if(r.file){window.open(r.file);}
-else{toast("Export Failed");}
+if(res.success){
+let data=res.data||res;
+exportURL=data.url||data.file||"";
+showExportDone(data.name||data.filename||"Report");
+}
 
+else{
+toast(res.message||"Export Failed");
+hideExport();
+}
+
+}catch(e){
+toast("Network Error");
+hideExport();
+}
+
+exporting=false;
+
+}
+
+function showExportLoading(){
+
+$("exportModal").style.display="flex";
+$("exportLoading").style.display="block";
+$("exportDone").style.display="none";
+
+}
+
+function showExportDone(name){
+
+$("exportLoading").style.display="none";
+$("exportDone").style.display="block";
+$("exportFileName")
+.innerHTML=name;
+
+}
+
+function hideExport(){
+$("exportModal").style.display="none";
+}
+
+function openExportFile(){
+
+if(exportURL){window.open(exportURL);}
+hideExport();
+  
 }
