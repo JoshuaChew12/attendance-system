@@ -1,6 +1,13 @@
 let reportType="attendance";
 let reportRows=[];
-
+const reportTitle=document.getElementById("reportTitle");
+const leaveTabs=document.getElementById("leaveTabs");
+const reportResult=document.getElementById("reportResult");
+const reportKPI=document.getElementById("reportKPI");
+const fromDate=document.getElementById("fromDate");
+const toDate=document.getElementById("toDate");
+const branchBox=document.getElementById("branchBox");
+const employeeBox=document.getElementById("employeeBox");
 let currentUser=JSON.parse(localStorage.user||"{}");
 
 /* =====================================================
@@ -9,7 +16,7 @@ let currentUser=JSON.parse(localStorage.user||"{}");
 async function loadReport(){
 
 setDefaultDate();
-buildFilter();
+await buildFilter();
 switchReport("attendance");
 
 }
@@ -330,18 +337,27 @@ renderKPI([
 
 ["Total",rows.length],
 
-["Pending",rows.filter(x=>x.status=="Pending").length],
+["Pending",
+rows.filter(x=>x.status=="Pending").length
+],
 
-["Approved",rows.filter(x=>x.status=="Approved").length],
+["Approved",
+rows.filter(x=>x.status=="Approved").length
+],
 
-["Rejected",rows.filter(x=>x.status=="Rejected").length],
+["Rejected",
+rows.filter(x=>x.status=="Rejected").length
+],
 
-["Cancelled",rows.filter(x=>x.status=="Cancelled").length]
+["Cancelled",
+rows.filter(x=>x.status=="Cancelled").length
+
+]
 
 .map(x=>({
 
 label:x[0],
-value:x[1]
+value:x[1]||0
 
 })));
 
