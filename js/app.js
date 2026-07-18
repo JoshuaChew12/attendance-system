@@ -3,7 +3,12 @@
 Attendance App Router
 ==========================
 */
-let currentPage = null;
+window.$=id=>document.getElementById(id);
+window.getUser=()=>{
+try{return JSON.parse(localStorage.user||"{}");}
+catch(e){return {};}
+};
+let currentPage=null;
 
 // LOAD PAGE
 async function loadPage(page){
