@@ -9,12 +9,19 @@ return document.getElementById(id);
 async function loadAttendanceReport(){
 
 let d=new Date();
+
 att$("toDate").value=d.toISOString().slice(0,10);
 d.setDate(1);
 att$("fromDate").value=d.toISOString().slice(0,10);
 
 await buildAttendanceFilter();
-searchAttendance();
+attendanceRows=[];
+renderKPI({});
+
+att$("attendanceResult").innerHTML=`
+<div class="empty-report">
+Select Filter and press Search
+</div>`;
 
 }
 
@@ -193,22 +200,27 @@ ${x.status||"-"}
 /* EXPORT */
 async function exportAttendance(type){
 
-let r=await apiGet({
-action:"exportAttendance"+type,
+const action={
+PDF:"exportReportPDF",
+Excel:"exportReportExcel",
+CSV:"exportReportCSV"
+}[type];
+
+const r=await apiGet({
+action,
+type:"attendance",
 from:att$("fromDate").value,
 to:att$("toDate").value,
-branch:att$("branchID")?.value||"",
-employee_id:att$("employeeID")?.value||""
+branch:att$("branchID")?.value||"ALL",
+employee:att$("employeeID")?.value||""
 });
 
 if(r.success){
 
-let url=r.data?.url||r.url;
+const url=r.downloadUrl;
 if(url)
 window.open(url,"_blank");
 
-}
-
-else{alert(r.message||"Export Failed");}
+}else{alert(r.message||"Export Failed");}
 
 }
