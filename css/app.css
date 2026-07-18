@@ -697,7 +697,7 @@ margin-top:8px;
 REPORT DASHBOARD
 ===================== */
 .report-page{
-padding:16px;
+padding:0;
 padding-bottom:100px;
 }
 
@@ -721,7 +721,7 @@ box-shadow:0 8px 20px rgba(0,0,0,.08);
 }
 
 .report-card h3{
-margin:0 0 15px;
+margin:16px;
 font-size:18px;
 }
 
