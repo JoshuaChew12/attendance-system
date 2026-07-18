@@ -130,6 +130,20 @@ report:async()=>{
 if(typeof loadReport==="function")
 await loadReport();
 
+},
+
+attendanceReport:async()=>{
+
+if(typeof loadAttendanceReport==="function")
+await loadAttendanceReport();
+
+},
+
+leaveReport:async()=>{
+
+if(typeof loadLeaveReport==="function")
+await loadLeaveReport();
+
 }
 
 };
