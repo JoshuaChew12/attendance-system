@@ -245,6 +245,23 @@ font-size:15px;
 font-weight:600;
 }
 
+.single-status{
+padding:15px;
+background:#f8fafc;
+border-radius:14px;
+}
+
+.single-status p{
+margin:0;
+font-size:14px;
+color:#666;
+}
+
+.single-status h2{
+margin:8px 0 0;
+font-size:20px;
+}
+
 /* =====================================================
    SCAN PAGE
 ===================================================== */
