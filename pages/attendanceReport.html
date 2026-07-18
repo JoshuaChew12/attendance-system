@@ -1,0 +1,69 @@
+<div class="report-page">
+
+<h2>
+📊 Attendance Report
+</h2>
+
+<!-- FILTER -->
+<div class="report-card">
+
+<h3>
+Filter
+</h3>
+
+<input 
+type="date"
+id="fromDate">
+
+<input
+type="date"
+id="toDate">
+
+<div id="branchBox"></div>
+
+<div id="employeeBox"></div>
+
+<button onclick="searchAttendance()">
+Search
+</button>
+
+</div>
+
+<!-- KPI -->
+<div id="reportKPI"
+class="mini-grid">
+
+</div>
+
+<!-- EXPORT -->
+<div class="report-card">
+
+<h3>
+Export
+</h3>
+
+<div class="export-grid">
+
+<button onclick="exportAttendance('PDF')">
+PDF
+</button>
+
+<button onclick="exportAttendance('Excel')">
+Excel
+</button>
+
+<button onclick="exportAttendance('CSV')">
+CSV
+</button>
+
+</div>
+
+</div>
+
+<!-- RESULT -->
+<div id="attendanceResult">
+
+</div>
+
+
+</div>
