@@ -1,7 +1,5 @@
-const $=x=>document.getElementById(x);
-const getUser=()=>JSON.parse(localStorage.user||"{}");
-let attendanceReport=[];
-let leaveDashboard={};
+window.attendanceReport=[];
+window.leaveDashboard={};
 
 async function loadReport(){
 
