@@ -139,4 +139,10 @@ if(r.success) loadHome();
 
 };
 
-window.addEventListener("focus",loadHome);
+window.addEventListener("focus",()=>{
+
+if(location.hash==="home" || 
+document.getElementById("homeAvatar"))
+loadHome();
+
+});
