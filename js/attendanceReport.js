@@ -108,7 +108,7 @@ renderAttendance();
 
 function renderKPI(s){
 
-attEl("reportKPI").innerHTML=
+attEl("reportKPI").innerHTML=`
 
 <div class="mini-card">
 <span>Total</span>
