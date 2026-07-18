@@ -7,7 +7,7 @@ clearInterval(homeClock);
 const run=()=>{
 const n=new Date();
 
-$("liveClock").innerHTML=n.toLocaleTimeString("en-GB");
+liveClock.innerHTML=n.toLocaleTimeString("en-GB");
 
 todayDate.innerHTML=
 n.toLocaleDateString("en-GB",{
@@ -117,7 +117,7 @@ leave?leave.leave_id:"";
 
 }catch(e){
 
-$("statusText").innerHTML="Error";
+statusText.innerHTML="Error";
 
 }
 
