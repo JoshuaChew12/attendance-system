@@ -5,13 +5,11 @@ function startClock(){
 clearInterval(homeClock);
 
 const run=()=>{
-const clock=document.getElementById("liveClock");
-const date=document.getElementById("todayDate");
-if(!clock||!date)return;
-
 const n=new Date();
-clock.innerHTML=n.toLocaleTimeString("en-GB");
-date.innerHTML=
+
+liveClock.innerHTML=n.toLocaleTimeString("en-GB");
+
+todayDate.innerHTML=
 n.toLocaleDateString("en-GB",{
 weekday:"long",
 day:"2-digit",
@@ -22,7 +20,6 @@ year:"numeric"
 };
 
 run();
-
 homeClock=setInterval(run,1000);
 
 }
@@ -122,11 +119,11 @@ ${leave.start_date} → ${leave.end_date}<br>
 ${leave.days} Day(s)<br>
 ${leave.status}`:"-";
 
-const cancelBtn=document.getElementById("cancelLeaveBtn");
-if(cancelBtn){
-cancelBtn.style.display=leave&&leave.status=="Pending"?"block":"none";
-cancelBtn.dataset.id=leave?leave.leave_id:"";
-}
+cancelLeaveBtn.style.display=
+leave&&leave.status=="Pending"?"block":"none";
+
+cancelLeaveBtn.dataset.id=
+leave?leave.leave_id:"";
 
 }catch(e){
 
@@ -136,9 +133,7 @@ statusText.innerHTML="Error";
 
 }
 
-const cancelBtn=document.getElementById("cancelLeaveBtn");
-if(cancelBtn){
-cancelBtn.onclick=async()=>{
+cancelLeaveBtn.onclick=async()=>{
 
 const id=cancelLeaveBtn.dataset.id;
 if(!id) return;
