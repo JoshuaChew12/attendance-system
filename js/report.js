@@ -1,10 +1,15 @@
-const user=JSON.parse(localStorage.user||"{}");
-
 const $=x=>document.getElementById(x);
+const getUser=()=>JSON.parse(localStorage.user||"{}");
+let attendanceReport=[];
+let leaveDashboard={};
 
 async function loadReport(){
-loadAttendanceDashboard();
-loadLeaveDashboard();
+
+await Promise.all([
+loadAttendanceDashboard(),
+loadLeaveDashboard()
+]);
+
 }
 
 /* =========================
@@ -15,7 +20,9 @@ async function loadAttendanceDashboard(){
 let r=await apiGet({action:"getAttendanceReportDashboard"});
 if(!r.success)return;
 
+attendanceReport=r.records||[];
 let s=r.summary||{};
+
 presentCount.innerHTML=s.present||0;
 lateCount.innerHTML=s.late||0;
 absentCount.innerHTML=s.absent||0;
@@ -25,8 +32,7 @@ leaveCount.innerHTML=s.leave||0;
 
 async function showAttendance(type){
 
-let r=await apiGet({action:"getAttendanceReportDashboard"});
-let data=(r.records||[]).filter(x=>x.status==type);
+let data=attendanceReport.filter(x=>x.status==type);
 
 attendanceList.innerHTML=
 data.map(x=>`
@@ -50,9 +56,8 @@ async function loadLeaveDashboard(){
 
 let r=await apiGet({action:"getLeaveDashboard"});
 if(!r.success)return;
-
-let d=r.data||{};
-pendingCount.innerHTML=d.pending||0;
+leaveDashboard=r.data||{};
+pendingCount.innerHTML=leaveDashboard.pending||0;
 
 }
 
@@ -72,7 +77,7 @@ data.map(x=>`
 <p>${x.start_date}~${x.end_date}</p>
 <p>Days:${x.days}</p>
 
-${user.role!="Employee"?
+${["Supervisor","Admin"].includes(getUser().role)?
 `
 <button onclick="approveLeave('${x.leave_id}')">
 Approve
@@ -93,18 +98,31 @@ Reject
 
 async function approveLeave(id){
 
+let role=getUser().role;
+if(!["Supervisor","Admin"].includes(role))
+return;
 let r=await apiPost({action:"approveLeave",leave_id:id});
 alert(r.message);
-showPendingLeave();
+await Promise.all([
+showPendingLeave(),
+loadLeaveDashboard()
+]);
 
 }
 
 async function rejectLeave(id){
 
+let role=getUser().role;
+if(!["Supervisor","Admin"].includes(role))
+return;
 let reason=prompt("Reject reason");
+if(!reason)return;
 let r=await apiPost({action:"rejectLeave",leave_id:id,reason});
 alert(r.message);
-showPendingLeave();
+await Promise.all([
+showPendingLeave(),
+loadLeaveDashboard()
+]);
 
 }
 
