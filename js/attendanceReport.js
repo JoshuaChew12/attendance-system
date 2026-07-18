@@ -2,8 +2,9 @@ window.attUser=JSON.parse(localStorage.user||"{}");
 window.attendanceRows=[];
 window.att$=id=>document.getElementById(id);
 
-const reportKPI=att$("reportKPI");
-const attendanceResult=att$("attendanceResult");
+function attEl(id){
+return document.getElementById(id);
+}
 
 async function loadAttendanceReport(){
 
@@ -107,7 +108,7 @@ renderAttendance();
 
 function renderKPI(s){
 
-reportKPI.innerHTML=`
+attEl("reportKPI").innerHTML=
 
 <div class="mini-card">
 <span>Total</span>
@@ -141,23 +142,51 @@ reportKPI.innerHTML=`
 /* LIST */
 function renderAttendance(data=attendanceRows){
 
-attendanceResult.innerHTML=
-data.map(x=>`
+attEl("attendanceResult").innerHTML=`
+<table class="attendance-table">
 
-<div class="list-card">
-<b>${x.employee_name||""}</b>
-<p>ID : ${x.employee_id||""}</p>
-<p>Date : ${x.date||""}</p>
-<p>Branch : ${x.branch_name||""}</p>
-<p>${x.checkIn||"--:--"}-${x.checkOut||"--:--"}</p>
+<thead>
 
+<tr>
+
+<th>Date</th>
+<th>Employee</th>
+<th>ID</th>
+<th>Branch</th>
+<th>Check In</th>
+<th>Check Out</th>
+<th>Status</th>
+
+</tr>
+
+</thead>
+
+
+<tbody>
+
+${data.map(x=>`
+<tr>
+
+<td>${x.date||"-"}</td>
+
+<td>${x.employee_name||"-"}</td>
+<td>${x.employee_id||"-"}</td>
+<td>${x.branch_name||"-"}</td>
+<td>${x.checkIn||"--"}</td>
+<td>${x.checkOut||"--"}</td>
+<td>
 <span class="badge">
-${x.status||""}
+${x.status||"-"}
 </span>
+</td>
 
-</div>
+</tr>
+`).join("")}
 
-`).join("")||"No Attendance Record";
+</tbody>
+
+</table>
+`||"No Record";
 
 }
 
