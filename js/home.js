@@ -52,8 +52,15 @@ const me=p.data||{};
 employeeName.innerHTML=me.name||"-";
 branchName.innerHTML=me.working_branch_name||"-";
 
-if(me.photo)
-homeAvatar.src=me.photo;
+const img=document.getElementById("homeAvatar");
+
+if(img && me.photo){
+let p=me.photo;
+if(p.includes("drive.google.com")){
+const id=(p.match(/id=([^&]+)/)||[])[1];
+if(id) p="https://lh3.googleusercontent.com/d/"+id;}
+img.src=p+"?t="+Date.now();
+}
 
 const t=a.record||{};
 
@@ -94,11 +101,13 @@ cal.weeklyOff?.find(x=>x.date==today)?"Weekly Off":
 "Working Day";
 
 const leave=(l.data||[])
-.sort((a,b)=>new Date(b.created||0)-new Date(a.created||0))
 .find(x=>["Pending","Approved","Rejected"].includes(x.status));
 
-leaveStatus.innerHTML=
-leave?leave.leave_type+" • "+leave.status:"-";
+leaveStatus.innerHTML=leave?
+`${leave.leave_type}<br>
+${leave.start_date} → ${leave.end_date}<br>
+${leave.days} Day(s)<br>
+${leave.status}`:"-";
 
 cancelLeaveBtn.style.display=
 leave&&leave.status=="Pending"?"block":"none";
