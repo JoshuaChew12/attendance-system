@@ -28,49 +28,51 @@ async function loadHome(){
 
 startClock();
 
-const user=JSON.parse(localStorage.user||"{}");
+const h=new Date().getHours();
 
 greeting.innerHTML=
-new Date().getHours()<12?
-"☀ Good Morning":
-new Date().getHours()<18?
-"🌤 Good Afternoon":
+h<12?"☀️ Good Morning":
+h<18?"🌤️ Good Afternoon":
 "🌙 Good Evening";
-
-employeeName.innerHTML=user.employee_name||"-";
-branchName.innerHTML=user.branch_name||"-";
-
-if(user.photo_url)
-homeAvatar.src=user.photo_url;
 
 try{
 
-const r=await apiGet({
-action:"getTodayAttendance"
-});
+const [p,a,c,l]=await Promise.all([
+apiGet({action:"getProfile"}),
+apiGet({action:"getTodayAttendance"}),
+apiGet({
+action:"getCalendarData",
+month:new Date().toISOString().slice(0,7)
+}),
+apiGet({action:"getLeaveHistory"})
+]);
 
-const a=r.record||{};
+const me=p.data||{};
 
-checkIn.innerHTML=
-a.checkIn||"--:--";
+employeeName.innerHTML=me.name||"-";
+branchName.innerHTML=me.working_branch_name||"-";
 
-checkOut.innerHTML=
-a.checkOut||"--:--";
+if(me.photo)
+homeAvatar.src=me.photo;
 
-/* Progress */
-let p=0,
+const t=a.record||{};
+
+checkIn.innerHTML=t.checkIn||"--:--";
+checkOut.innerHTML=t.checkOut||"--:--";
+
+let pBar=0,
 txt="Not Started",
 icon="⏳";
 
-if(r.exists){
+if(a.exists){
 
-p=50;
+pBar=50;
 txt="Working";
-icon="💼";
+icon=t.status=="Late"?"⚠️":"💼";
 
-if(a.checkOut){
+if(t.checkOut){
 
-p=100;
+pBar=100;
 txt="Completed";
 icon="✅";
 
@@ -78,24 +80,31 @@ icon="✅";
 
 }
 
-if(a.status=="Late")
-icon="⚠";
-
 statusText.innerHTML=txt;
 statusEmoji.innerHTML=icon;
+progressBar.style.width=pBar+"%";
 
-progressBar.style.width=p+"%";
+const today=new Date().toISOString().slice(0,10);
+const cal=c.data||{};
 
-/* Today */
-todayType.innerHTML=a.dayType||"Working Day";
+todayType.innerHTML=
+cal.leave?.find(x=>x.date==today)?"Leave":
+cal.holiday?.find(x=>x.date==today)?"Holiday":
+cal.weeklyOff?.find(x=>x.date==today)?"Weekly Off":
+"Working Day";
 
-/* Leave */
-leaveStatus.innerHTML=a.leaveStatus||"-";
+const leave=(l.data||[])
+.sort((a,b)=>new Date(b.created||0)-new Date(a.created||0))
+.find(x=>["Pending","Approved","Rejected"].includes(x.status));
+
+leaveStatus.innerHTML=
+leave?leave.leave_type+" • "+leave.status:"-";
 
 cancelLeaveBtn.style.display=
+leave&&leave.status=="Pending"?"block":"none";
 
-a.leaveStatus=="Pending"
-?"block":"none";
+cancelLeaveBtn.dataset.id=
+leave?leave.leave_id:"";
 
 }catch(e){
 
@@ -107,17 +116,17 @@ statusText.innerHTML="Error";
 
 cancelLeaveBtn.onclick=async()=>{
 
-if(!confirm("Cancel this leave?"))
-return;
+const id=cancelLeaveBtn.dataset.id;
+if(!id) return;
+if(!confirm("Cancel this leave?")) return;
 
 const r=await apiPost({
-action:"cancelLeave"
+action:"cancelLeave",
+leave_id:id
 });
 
 alert(r.message);
-
-if(r.success)
-loadHome();
+if(r.success) loadHome();
 
 };
 
