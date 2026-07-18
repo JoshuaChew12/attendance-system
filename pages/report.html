@@ -1,137 +1,101 @@
 <div class="report-page">
 
+<h2>Report Dashboard</h2>
 
-<!-- HEADER -->
-<div class="report-header">
-
-<div>
-<h2 id="reportTitle">
-Attendance Report
-</h2>
-
-<span id="reportRole"></span>
-
-</div>
-
-</div>
-
-
-<!-- SWITCH -->
-<div class="report-tabs">
-
-<button 
-onclick="switchReport('attendance')">
-Attendance
-</button>
-
-<button 
-onclick="switchReport('leave')">
-Leave
-</button>
-
-</div>
-
-<!-- KPI -->
-<div id="reportKPI"
-class="kpi-grid">
-
-</div>
-
-<!-- FILTER -->
-<div class="report-card filter-card">
-
-<h3>Filter</h3>
-
-<div class="date-row">
-
-<input 
-type="date"
-id="fromDate">
-
-<input 
-type="date"
-id="toDate">
-</div>
-
-<div id="branchBox"></div>
-
-<div id="employeeBox"></div>
-
-<button 
-class="primary-btn"
-onclick="searchReport()">
-
-Search
-
-</button>
-
-</div>
-
-<!-- EXPORT -->
-
-<div class="report-card">
-<h3>Export Report</h3>
-<div class="export-grid">
-
-<button onclick="exportPDF()">
-PDF
-</button>
-
-<button onclick="exportExcel()">
-Excel
-</button>
-
-<button onclick="exportCSV()">
-CSV
-</button>
-
-</div>
-
-</div>
-
-<!-- LEAVE MENU -->
-
-<div id="leaveTabs"
-class="leave-menu">
-
-</div>
-
-<!-- RESULT -->
-
-<div id="reportResult">
-
-</div>
-
-<!-- EXPORT MODAL -->
-<div id="exportModal"
-class="export-modal">
-
-<div class="export-box">
-
-<div id="exportLoading">
-Generating Report...
-</div>
-
-<div id="exportDone"
-style="display:none">
+<!-- ================= ATTENDANCE ================= -->
+<div class="dashboard-card">
 
 <h3>
-Report Ready
+📊 Attendance Today
 </h3>
 
-<p id="exportFileName"></p>
+<div class="mini-grid">
 
-<button 
-onclick="openExportFile()">
+<div class="mini-card" onclick="showAttendance('Present')">
+<span>Present</span>
+<b id="presentCount">0</b>
+</div>
 
-Open Download
+<div class="mini-card" onclick="showAttendance('Late')">
+<span>Late</span>
+<b id="lateCount">0</b>
+</div>
 
+<div class="mini-card" onclick="showAttendance('Absent')">
+<span>Absent</span>
+<b id="absentCount">0</b>
+</div>
+
+<div class="mini-card" onclick="showAttendance('Leave')">
+<span>Leave</span>
+<b id="leaveCount">0</b>
+</div>
+
+</div>
+
+<div id="attendanceList"></div>
+
+<button onclick="loadPage('attendanceReport')">
+View Attendance Report
 </button>
 
 </div>
 
+<!-- ================= LEAVE ================= -->
+<div class="dashboard-card">
+
+<h3>
+🏖️ Leave Dashboard
+</h3>
+
+<div class="mini-grid">
+
+<div class="mini-card" onclick="showPendingLeave()">
+
+<span>
+Pending
+</span>
+
+<b id="pendingCount">
+0
+</b>
+
+</div>
+
+<div class="mini-card" onclick="showLeaveReport()">
+
+<span>
+Leave Report
+</span>
+
+<b>
+📄
+</b>
+
+</div>
+
+<div class="mini-card" onclick="showBalance()">
+
+<span>
+Balance
+</span>
+
+<b>
+💰
+</b>
+
 </div>
 
 </div>
+
+
+<div id="leaveList"></div>
+
+<button onclick="loadPage('leaveReport')">
+View Leave Report
+</button>
+
+</div>
+
 
 </div>
