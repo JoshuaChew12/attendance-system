@@ -5,11 +5,13 @@ function startClock(){
 clearInterval(homeClock);
 
 const run=()=>{
+const clock=document.getElementById("liveClock");
+const date=document.getElementById("todayDate");
+if(!clock||!date)return;
+
 const n=new Date();
-
-liveClock.innerHTML=n.toLocaleTimeString("en-GB");
-
-todayDate.innerHTML=
+clock.innerHTML=n.toLocaleTimeString("en-GB");
+date.innerHTML=
 n.toLocaleDateString("en-GB",{
 weekday:"long",
 day:"2-digit",
@@ -20,6 +22,7 @@ year:"numeric"
 };
 
 run();
+
 homeClock=setInterval(run,1000);
 
 }
@@ -91,13 +94,23 @@ statusText.innerHTML=txt;
 statusEmoji.innerHTML=icon;
 progressBar.style.width=pBar+"%";
 
-const today=new Date().toISOString().slice(0,10);
-const cal=c.data||{};
+const today =new Intl.DateTimeFormat("en-CA",
+{timeZone:"Asia/Kuala_Lumpur"}
+).format(new Date());
 
-todayType.innerHTML=
-cal.leave?.find(x=>x.date==today)?"Leave":
-cal.holiday?.find(x=>x.date==today)?"Holiday":
-cal.weeklyOff?.find(x=>x.date==today)?"Weekly Off":
+const weekday =new Intl.DateTimeFormat("en-US",
+{weekday:"long",timeZone:"Asia/Kuala_Lumpur"}
+).format(new Date());
+
+const cal=c.data||{};
+const isLeave =(cal.leave||[]).some(x=>x.date==today);
+const isHoliday =(cal.holiday||[]).some(x=>x.date==today);
+const isWeeklyOff =(cal.weeklyOff||[]).includes(weekday);
+
+todayType.innerHTML =
+isLeave ? "Leave" :
+isHoliday ? "Holiday" :
+isWeeklyOff ? "Weekly Off" :
 "Working Day";
 
 const leave=(l.data||[])
@@ -109,11 +122,11 @@ ${leave.start_date} → ${leave.end_date}<br>
 ${leave.days} Day(s)<br>
 ${leave.status}`:"-";
 
-cancelLeaveBtn.style.display=
-leave&&leave.status=="Pending"?"block":"none";
-
-cancelLeaveBtn.dataset.id=
-leave?leave.leave_id:"";
+const cancelBtn=document.getElementById("cancelLeaveBtn");
+if(cancelBtn){
+cancelBtn.style.display=leave&&leave.status=="Pending"?"block":"none";
+cancelBtn.dataset.id=leave?leave.leave_id:"";
+}
 
 }catch(e){
 
@@ -123,7 +136,9 @@ statusText.innerHTML="Error";
 
 }
 
-cancelLeaveBtn.onclick=async()=>{
+const cancelBtn=document.getElementById("cancelLeaveBtn");
+if(cancelBtn){
+cancelBtn.onclick=async()=>{
 
 const id=cancelLeaveBtn.dataset.id;
 if(!id) return;
