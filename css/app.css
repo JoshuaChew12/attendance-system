@@ -686,125 +686,117 @@ margin-top:8px;
 .profile-card p{font-size:14px;}
 }
 
-/* =========================
-REPORT PAGE
-========================= */
+/*==============================
+REPORT
+==============================*/
 .report-page{
+padding:16px;
 padding-bottom:90px;
+background:#f5f7fb;
 }
 
-/* =========================
-SWITCH
-========================= */
+.report-switch,
+.report-filter,
+.report-export,
+#leaveTabs{
+display:grid;
+gap:10px;
+margin-bottom:16px;
+}
+
 .report-switch{
-display:grid;
 grid-template-columns:1fr 1fr;
-gap:10px;
-margin-bottom:15px;
 }
 
-.report-switch button,
-#leaveTabs button{
-height:42px;
-border:0;
-border-radius:12px;
-background:#e5e7eb;
-font-weight:600;
+.report-export{
+grid-template-columns:repeat(3,1fr);
 }
 
-.report-switch button:first-child{
-background:#2563eb;
-color:white;
-}
-
-/* =========================
-FILTER
-========================= */
-.report-filter{
-display:grid;
-gap:10px;
-margin-bottom:15px;
+#leaveTabs{
+grid-template-columns:repeat(3,1fr);
 }
 
 .report-filter input,
 .report-filter select,
-.report-filter button{
-height:45px;
+.report-filter button,
+.report-switch button,
+.report-export button,
+#leaveTabs button{
+height:42px;
+border:1px solid #dbe2ea;
 border-radius:12px;
-border:1px solid #ddd;
+background:#fff;
+font-size:14px;
+font-weight:600;
 padding:0 12px;
-font-size:15px;
 }
 
-.report-filter button{
+.report-filter button,
+.report-switch button:first-child{
 background:#2563eb;
-color:white;
-border:0;
-}
-
-/* =========================
-EXPORT
-========================= */
-.report-export{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:10px;
-margin-bottom:15px;
+border-color:#2563eb;
+color:#fff;
 }
 
 .report-export button{
-height:42px;
-border:0;
-border-radius:12px;
-background:#0f766e;
-color:white;
-font-weight:600;
+background:#16a34a;
+border-color:#16a34a;
+color:#fff;
 }
 
-/* =========================
+#leaveTabs button:active,
+.report-export button:active,
+.report-switch button:active,
+.report-filter button:active{
+transform:scale(.98);
+}
+
+/*==============================
 KPI
-========================= */
+==============================*/
 #reportKPI{
 display:grid;
 grid-template-columns:repeat(2,1fr);
 gap:12px;
-margin-bottom:15px;
+margin-bottom:16px;
 }
 
 .kpi-item{
-background:white;
-padding:15px;
-border-radius:18px;
+background:#fff;
+border:1px solid #e5e7eb;
+border-radius:14px;
+padding:14px;
 text-align:center;
-box-shadow:0 3px 10px rgba(0,0,0,.08);
 }
 
 .kpi-item span{
-font-size:13px;
-color:#777;
+display:block;
+font-size:12px;
+color:#64748b;
 }
 
 .kpi-item b{
 display:block;
-font-size:26px;
 margin-top:6px;
+font-size:24px;
 color:#2563eb;
 }
 
-/* =========================
-RESULT CARD
-========================= */
+/*==============================
+CARD
+==============================*/
 .report-card,
 .leave-card,
 .balance-card{
-background:white;
-padding:16px;
-border-radius:18px;
+background:#fff;
+border:1px solid #e5e7eb;
+border-radius:14px;
+padding:14px;
 margin-bottom:12px;
-box-shadow:0 3px 10px rgba(0,0,0,.08);
 }
 
-.report-head{
+.report-head,
+.balance-header{
 display:flex;
 justify-content:space-between;
 align-items:center;
@@ -813,19 +805,20 @@ align-items:center;
 .report-card p,
 .leave-card p,
 .balance-card p{
-margin:7px 0;
+margin:6px 0;
 font-size:14px;
-color:#555;
+color:#475569;
 }
 
-/* =========================
+/*==============================
 BADGE
-========================= */
+==============================*/
 .badge{
-padding:5px 12px;
+padding:4px 10px;
 border-radius:20px;
-font-size:12px;
-color:white;
+font-size:11px;
+font-weight:600;
+color:#fff;
 }
 
 .present,
@@ -836,7 +829,6 @@ background:#16a34a;
 .late,
 .pending{
 background:#f59e0b;
-color:#222;
 }
 
 .absent,
@@ -846,35 +838,15 @@ background:#dc2626;
 
 .cancelled{background:#64748b;}
 
-/* =========================
-LEAVE TAB
-========================= */
-#leaveTabs{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:10px;
-margin-bottom:15px;
-}
-
-#leaveTabs button:hover{
-background:#2563eb;
-color:white;
-}
-
-/* =========================
-LEAVE BALANCE
-========================= */
-.balance-header{
-display:flex;
-justify-content:space-between;
-}
-
+/*==============================
+BALANCE
+==============================*/
 .balance-bar{
-height:10px;
-background:#e5e7eb;
-border-radius:10px;
-overflow:hidden;
+height:8px;
 margin-top:10px;
+background:#e5e7eb;
+border-radius:20px;
+overflow:hidden;
 }
 
 .balance-fill{
@@ -885,15 +857,20 @@ background:#2563eb;
 .balance-number{
 display:flex;
 justify-content:space-between;
-font-size:13px;
-color:#777;
+margin-top:8px;
+font-size:12px;
+color:#64748b;
 }
 
-/* =========================
+/*==============================
 MOBILE
-========================= */
+==============================*/
 @media(max-width:480px){
+
+#reportKPI{grid-template-columns:repeat(2,1fr);}
 #leaveTabs{grid-template-columns:1fr;}
+.report-export{grid-template-columns:1fr 1fr 1fr;}
+
 }
 
 /* ===============================
@@ -944,14 +921,6 @@ background:#009688;
 color:white;
 font-weight:bold;
 
-}
-
-/* ==========================
-MOBILE
-========================== */
-@media(max-width:480px){
-.leave-tabs{grid-template-columns:1fr;}
-.leave-info{grid-template-columns:1fr;}
 }
 
 /* =====================================================
