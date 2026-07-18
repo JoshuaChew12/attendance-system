@@ -2,14 +2,14 @@ window.homeClock=null;
 
 function startClock(){
 
-clearInterval(window.homeClock);
+clearInterval(homeClock);
 
 const run=()=>{
 const n=new Date();
 
 $("liveClock").innerHTML=n.toLocaleTimeString("en-GB");
 
-$("todayDate").innerHTML=
+todayDate.innerHTML=
 n.toLocaleDateString("en-GB",{
 weekday:"long",
 day:"2-digit",
@@ -20,7 +20,7 @@ year:"numeric"
 };
 
 run();
-window.homeClock=setInterval(run,1000);
+homeClock=setInterval(run,1000);
 
 }
 
@@ -30,7 +30,7 @@ startClock();
 
 const h=new Date().getHours();
 
-$("greeting").innerHTML=
+greeting.innerHTML=
 h<12?"☀️ Good Morning":
 h<18?"🌤️ Good Afternoon":
 "🌙 Good Evening";
@@ -49,8 +49,8 @@ apiGet({action:"getLeaveHistory"})
 
 const me=p.data||{};
 
-$("employeeName").innerHTML=me.name||"-";
-$("branchName").innerHTML=me.working_branch_name||"-";
+employeeName.innerHTML=me.name||"-";
+branchName.innerHTML=me.working_branch_name||"-";
 
 const img=document.getElementById("homeAvatar");
 
@@ -64,8 +64,8 @@ img.src=p+"?t="+Date.now();
 
 const t=a.record||{};
 
-$("checkIn").innerHTML=t.checkIn||"--:--";
-$("checkOut").innerHTML=t.checkOut||"--:--";
+checkIn.innerHTML=t.checkIn||"--:--";
+checkOut.innerHTML=t.checkOut||"--:--";
 
 let pBar=0,
 txt="Not Started",
@@ -87,14 +87,14 @@ icon="✅";
 
 }
 
-$("statusText").innerHTML=txt;
-$("statusEmoji").innerHTML=icon;
-$("progressBar").style.width=pBar+"%";
+statusText.innerHTML=txt;
+statusEmoji.innerHTML=icon;
+progressBar.style.width=pBar+"%";
 
 const today=new Date().toISOString().slice(0,10);
 const cal=c.data||{};
 
-$("todayType").innerHTML=
+todayType.innerHTML=
 cal.leave?.find(x=>x.date==today)?"Leave":
 cal.holiday?.find(x=>x.date==today)?"Holiday":
 cal.weeklyOff?.find(x=>x.date==today)?"Weekly Off":
@@ -103,16 +103,16 @@ cal.weeklyOff?.find(x=>x.date==today)?"Weekly Off":
 const leave=(l.data||[])
 .find(x=>["Pending","Approved","Rejected"].includes(x.status));
 
-$("leaveStatus").innerHTML=leave?
+leaveStatus.innerHTML=leave?
 `${leave.leave_type}<br>
 ${leave.start_date} → ${leave.end_date}<br>
 ${leave.days} Day(s)<br>
 ${leave.status}`:"-";
 
-$("cancelLeaveBtn").style.display=
+cancelLeaveBtn.style.display=
 leave&&leave.status=="Pending"?"block":"none";
 
-$("cancelLeaveBtn").dataset.id=
+cancelLeaveBtn.dataset.id=
 leave?leave.leave_id:"";
 
 }catch(e){
@@ -123,9 +123,9 @@ $("statusText").innerHTML="Error";
 
 }
 
-$("cancelLeaveBtn").onclick=async()=>{
+cancelLeaveBtn.onclick=async()=>{
 
-const id=$("cancelLeaveBtn").dataset.id;
+const id=cancelLeaveBtn.dataset.id;
 if(!id) return;
 if(!confirm("Cancel this leave?")) return;
 
