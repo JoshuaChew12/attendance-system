@@ -693,242 +693,88 @@ margin-top:8px;
 .profile-card p{font-size:14px;}
 }
 
-/*==============================
-REPORT
-==============================*/
+/* =====================
+REPORT DASHBOARD
+===================== */
 .report-page{
 padding:16px;
-padding-bottom:90px;
-background:#f5f7fb;
+padding-bottom:100px;
 }
 
-.report-switch,
-.report-filter,
-.report-export,
-#leaveTabs{
+.dashboard-card{
+background:white;
+padding:20px;
+border-radius:25px;
+margin-bottom:20px;
+box-shadow:
+0 8px 20px rgba(0,0,0,.08);
+}
+
+.dashboard-card h3{margin-top:0;}
+
+.mini-grid{
 display:grid;
-gap:10px;
-margin-bottom:16px;
-}
-
-.report-switch{
-grid-template-columns:1fr 1fr;
-}
-
-.report-export{
-grid-template-columns:repeat(3,1fr);
-}
-
-#leaveTabs{
-grid-template-columns:repeat(3,1fr);
-}
-
-.report-filter input,
-.report-filter select,
-.report-filter button,
-.report-switch button,
-.report-export button,
-#leaveTabs button{
-height:42px;
-border:1px solid #dbe2ea;
-border-radius:12px;
-background:#fff;
-font-size:14px;
-font-weight:600;
-padding:0 12px;
-}
-
-.report-filter button,
-.report-switch button:first-child{
-background:#2563eb;
-border-color:#2563eb;
-color:#fff;
-}
-
-.report-export button{
-background:#16a34a;
-border-color:#16a34a;
-color:#fff;
-}
-
-#leaveTabs button:active,
-.report-export button:active,
-.report-switch button:active,
-.report-filter button:active{
-transform:scale(.98);
-}
-
-/*==============================
-KPI
-==============================*/
-#reportKPI{
-display:grid;
-grid-template-columns:repeat(2,1fr);
+grid-template-columns:
+repeat(2,1fr);
 gap:12px;
-margin-bottom:16px;
 }
 
-.kpi-item{
-background:#fff;
-border:1px solid #e5e7eb;
-border-radius:14px;
-padding:14px;
+.mini-card{
+background:#f8fafc;
+padding:18px;
+border-radius:18px;
 text-align:center;
+cursor:pointer;
 }
 
-.kpi-item span{
+.mini-card span{
 display:block;
-font-size:12px;
+font-size:14px;
 color:#64748b;
 }
 
-.kpi-item b{
+.mini-card b{
 display:block;
-margin-top:6px;
-font-size:24px;
+font-size:28px;
+margin-top:8px;
 color:#2563eb;
 }
 
-/*==============================
-CARD
-==============================*/
-.report-card,
-.leave-card,
-.balance-card{
-background:#fff;
-border:1px solid #e5e7eb;
-border-radius:14px;
-padding:14px;
-margin-bottom:12px;
-}
-
-.report-head,
-.balance-header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-
-.report-card p,
-.leave-card p,
-.balance-card p{
-margin:6px 0;
-font-size:14px;
-color:#475569;
-}
-
-/*==============================
-BADGE
-==============================*/
-.badge{
-padding:4px 10px;
-border-radius:20px;
-font-size:11px;
-font-weight:600;
-color:#fff;
-}
-
-.present,
-.approved{
-background:#16a34a;
-}
-
-.late,
-.pending{
-background:#f59e0b;
-}
-
-.absent,
-.rejected{
-background:#dc2626;
-}
-
-.cancelled{background:#64748b;}
-
-/*==============================
-BALANCE
-==============================*/
-.balance-bar{
-height:8px;
-margin-top:10px;
-background:#e5e7eb;
-border-radius:20px;
-overflow:hidden;
-}
-
-.balance-fill{
-height:100%;
-background:#2563eb;
-}
-
-.balance-number{
-display:flex;
-justify-content:space-between;
-margin-top:8px;
-font-size:12px;
-color:#64748b;
-}
-
-/*==============================
-MOBILE
-==============================*/
-@media(max-width:480px){
-
-#reportKPI{grid-template-columns:repeat(2,1fr);}
-#leaveTabs{grid-template-columns:1fr;}
-.report-export{grid-template-columns:1fr 1fr 1fr;}
-
-}
-
-/* ===============================
- EXPORT MODAL
-=============================== */
-.export-modal{
-
-display:none;
-position:fixed;
-top:0;
-left:0;
-right:0;
-bottom:0;
-background:
-rgba(0,0,0,.45);
-z-index:999;
-align-items:center;
-justify-content:center;
-
-}
-
-.export-box{
-
-background:white;
-width:85%;
-max-width:350px;
-border-radius:20px;
-padding:25px;
-text-align:center;
-
-}
-
-#exportLoading{
-
-font-size:18px;
-font-weight:bold;
-
-}
-
-#exportDone button{
-
-margin-top:15px;
+.dashboard-card button{
 width:100%;
-padding:13px;
-border-radius:12px;
+height:48px;
+margin-top:20px;
 border:0;
-background:#009688;
+border-radius:15px;
+background:#2563eb;
 color:white;
-font-weight:bold;
-
+font-size:16px;
 }
+
+.list-card{
+background:#f8fafc;
+padding:15px;
+border-radius:18px;
+margin-top:12px;
+}
+
+.list-card p{
+margin:6px 0;
+color:#64748b;
+font-size:14px;
+}
+
+.list-card button{
+width:48%;
+height:40px;
+border:0;
+border-radius:10px;
+margin-top:10px;
+background:#16a34a;
+color:white;
+}
+
+.list-card button:last-child{background:#dc2626;}
 
 /* =====================================================
    LEAVE APPLY PAGE
