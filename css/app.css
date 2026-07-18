@@ -764,15 +764,10 @@ font-weight:600;
 }
 
 .mini-grid{
-position:sticky;
-top:0;
-z-index:50;
-background:#f5f7fb;
-padding:12px 0;
 display:grid;
-grid-template-columns:repeat(5,1fr);
+grid-template-columns:repeat(2,1fr);
 gap:12px;
-margin-bottom:18px;
+margin-bottom:16px;
 }
 
 .mini-card{
@@ -847,44 +842,46 @@ color:white;
 font-weight:600;
 }
 
-.table-wrap{
+.table-box{
+margin-top:15px;
 background:#fff;
-border-radius:20px;
-overflow:auto;
-max-height:65vh;
-box-shadow:0 8px 20px rgba(0,0,0,.08);
+border-radius:18px;
+box-shadow:0 6px 15px rgba(0,0,0,.08);
+overflow:hidden;
+}
+
+.table-scroll{
+max-height:520px;
+overflow-y:auto;
+overflow-x:auto;
 }
 
 .attendance-table{
 width:100%;
+min-width:720px;
 border-collapse:collapse;
-min-width:760px;
 }
 
-.attendance-table thead{
+.attendance-table thead th{
 position:sticky;
 top:0;
-z-index:5;
-}
-
-.attendance-table th{
+z-index:2;
 background:#2563eb;
 color:#fff;
-padding:14px;
+padding:12px;
 font-size:13px;
-text-align:left;
 white-space:nowrap;
 }
 
 .attendance-table td{
-padding:13px;
+padding:11px;
+font-size:13px;
 border-bottom:1px solid #eee;
-font-size:14px;
 white-space:nowrap;
 }
 
-.attendance-table tbody tr:nth-child(even){background:#fafafa;}
-.attendance-table tbody tr:hover{background:#eef5ff;}
+.attendance-table tr:nth-child(even){background:#fafafa;}
+.attendance-table tr:hover{background:#eef6ff;}
 
 .empty-report{
 padding:50px 20px;
