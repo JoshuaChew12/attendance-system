@@ -2,32 +2,25 @@ window.homeClock=null;
 
 function startClock(){
 
-clearInterval(window.homeClock);
+clearInterval(homeClock);
 
-const update=()=>{
-const now=new Date();
+const run=()=>{
+const n=new Date();
 
-const t=now.toLocaleTimeString("en-GB");
-const d=now.toLocaleDateString("en-GB",{
+liveClock.innerHTML=n.toLocaleTimeString("en-GB");
 
+todayDate.innerHTML=
+n.toLocaleDateString("en-GB",{
 weekday:"long",
 day:"2-digit",
 month:"long",
 year:"numeric"
-
 });
-
-const c=document.getElementById("liveClock");
-const x=document.getElementById("todayDate");
-
-if(c)c.innerHTML=t;
-if(x)x.innerHTML=d;
 
 };
 
-update();
-
-window.homeClock=setInterval(update,1000);
+run();
+homeClock=setInterval(run,1000);
 
 }
 
@@ -35,97 +28,97 @@ async function loadHome(){
 
 startClock();
 
-const user=JSON.parse(localStorage.getItem("user"));
-if(!user)return;
+const user=JSON.parse(localStorage.user||"{}");
 
-const set=(i,v)=>{
-const e=document.getElementById(i);
-if(e)e.innerHTML=v;
-};
+greeting.innerHTML=
+new Date().getHours()<12?
+"☀ Good Morning":
+new Date().getHours()<18?
+"🌤 Good Afternoon":
+"🌙 Good Evening";
 
-const h=new Date().getHours();
+employeeName.innerHTML=user.employee_name||"-";
+branchName.innerHTML=user.branch_name||"-";
 
-set("greeting",
-h<12?"☀ Good Morning":
-h<18?"🌤 Good Afternoon":
-"🌙 Good Evening");
-
-set("employeeName",user.employee_name);
-set("branchName",user.branch_name);
-
-// Supervisor / Admin 才读取 Dashboard
-if(user.role!="Employee"){
+if(user.photo_url)
+homeAvatar.src=user.photo_url;
 
 try{
 
-const dash=await apiGet({
-action:"getDashboard",
-branch:user.branch_id
-});
-
-if(dash.success){
-
-set("present",dash.data.present);
-set("late",dash.data.late);
-
-}
-
-}catch(e){}
-
-}else{
-
-set("present","-");
-set("late","-");
-
-}
-
-try{
-
-const t=await apiGet({
+const r=await apiGet({
 action:"getTodayAttendance"
 });
-console.log("TODAY API",t);
-const r=t.record||{};
 
-set("checkIn",r.checkIn||"--:--");
-set("checkOut",r.checkOut||"--:--");
+const a=r.record||{};
 
-let text="Not Started";
-let icon="⏳";
-let p=0;
+checkIn.innerHTML=
+a.checkIn||"--:--";
 
-if(t.exists){
+checkOut.innerHTML=
+a.checkOut||"--:--";
 
-text="Working";
-icon="💼";
+/* Progress */
+let p=0,
+txt="Not Started",
+icon="⏳";
+
+if(r.exists){
+
 p=50;
+txt="Working";
+icon="💼";
 
-if(r.checkOut){
+if(a.checkOut){
 
-text="Completed";
-icon="✅";
 p=100;
+txt="Completed";
+icon="✅";
 
 }
 
 }
 
-if(r.status=="Late")
+if(a.status=="Late")
 icon="⚠";
 
-set("statusText",text);
-set("statusEmoji",icon);
+statusText.innerHTML=txt;
+statusEmoji.innerHTML=icon;
 
-const bar=document.getElementById("progressBar");
-if(bar)
-bar.style.width=p+"%";
+progressBar.style.width=p+"%";
+
+/* Today */
+todayType.innerHTML=a.dayType||"Working Day";
+
+/* Leave */
+leaveStatus.innerHTML=a.leaveStatus||"-";
+
+cancelLeaveBtn.style.display=
+
+a.leaveStatus=="Pending"
+?"block":"none";
 
 }catch(e){
 
-set("statusText","Error");
+statusText.innerHTML="Error";
 
 }
 
 }
+
+cancelLeaveBtn.onclick=async()=>{
+
+if(!confirm("Cancel this leave?"))
+return;
+
+const r=await apiPost({
+action:"cancelLeave"
+});
+
+alert(r.message);
+
+if(r.success)
+loadHome();
+
+};
 
 window.addEventListener("focus",loadHome);
