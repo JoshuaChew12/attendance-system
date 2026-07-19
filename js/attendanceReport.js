@@ -215,12 +215,35 @@ branch:att$("branchID")?.value||"ALL",
 employee:att$("employeeID")?.value||""
 });
 
-if(r.success){
+if(!r.success){alert(r.message||"Export Failed");return;}
+// =========================
+// SHOW DOWNLOAD
+// =========================
+showExportResult(r.downloadUrl,type);
 
-const url=r.downloadUrl;
-if(url)
-window.open(url,"_blank");
+}
 
-}else{alert(r.message||"Export Failed");}
+function showExportResult(url,type){
+
+if(!url){alert("File Generated But No Download Link");return;}
+const box=document.createElement("div");
+box.className="export-result";
+box.innerHTML=`
+
+<div class="list-card">
+<h3>✅ ${type} Export Completed</h3>
+<p>Your file is ready.</p>
+<a href="${url}"
+target="_blank"
+class="export-download">
+⬇️ Download ${type}
+</a>
+
+</div>
+
+`;
+
+document.body.appendChild(box);
+setTimeout(()=>{box.remove();},15000);
 
 }
