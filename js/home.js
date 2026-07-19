@@ -1,5 +1,5 @@
 window.homeClock=null;
-let homeLoading=false;
+window.homeLoading=false;
 
 function set(id,v){
 const e=document.getElementById(id);
@@ -31,8 +31,8 @@ window.homeClock=setInterval(run,1000);
 
 async function loadHome(){
 
-if(homeLoading)return;
-homeLoading=true;
+if(window.homeLoading)return;
+window.homeLoading=true;
 startClock();
 
 const btn=document.getElementById("cancelLeaveBtn");
@@ -50,7 +50,8 @@ apiGet({action:"getProfile"}),
 apiGet({action:"getTodayAttendance"}),
 apiGet({
 action:"getCalendarData",
-month:new Date().toISOString().slice(0,7)
+month:new Date().toISOString().slice(0,7),
+employee_id:JSON.parse(localStorage.user).employee_id
 }),
 apiGet({action:"getLeaveHistory"})
 ]);
@@ -129,7 +130,7 @@ set("statusText","Error");
 
 }
 
-finally{homeLoading=false;}
+finally{window.homeLoading=false;}
   
 }
 
