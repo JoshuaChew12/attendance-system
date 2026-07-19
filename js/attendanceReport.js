@@ -206,19 +206,20 @@ Excel:"exportReportExcel",
 CSV:"exportReportCSV"
 }[type];
 
-const r=await apiGet({
+const p={
 action,
 type:"attendance",
 from:att$("fromDate").value,
-to:att$("toDate").value,
-branch:att$("branchID")?.value||"ALL",
-employee:att$("employeeID")?.value||""
-});
+to:att$("toDate").value
+};
 
+if(attUser.role=="Admin")
+p.branch=att$("branchID")?.value||"ALL";
+if(attUser.role!="Employee")
+p.employee=att$("employeeID")?.value||"";
+
+const r=await apiGet(p);
 if(!r.success){alert(r.message||"Export Failed");return;}
-// =========================
-// SHOW DOWNLOAD
-// =========================
 showExportResult(r.downloadUrl,type);
 
 }
