@@ -15,9 +15,17 @@ loadLeaveDashboard()
 ========================= */
 async function loadAttendanceDashboard(){
 
-let r=await apiGet({action:"getAttendanceReportDashboard"});
-if(!r.success)return;
+let today=new Intl.DateTimeFormat("en-CA",{
+timeZone:"Asia/Kuala_Lumpur"
+}).format(new Date());
 
+let r=await apiGet({
+action:"getAttendanceReportDashboard",
+from:today,
+to:today
+});
+
+if(!r.success)return;
 attendanceReport=r.records||[];
 let s=r.summary||{};
 
@@ -36,10 +44,13 @@ attendanceList.innerHTML=
 data.map(x=>`
 
 <div class="list-card">
-<b>${x.employee_name}</b>
-<p>${x.employee_id}</p>
-<p>${x.branch_name||""}</p>
-<p>${x.status}</p>
+<h3>${x.employee_name}</h3>
+<p><b>ID:</b> ${x.employee_id}</p>
+<p><b>Branch:</b> ${x.branch_name||"-"}</p>
+<p><b>Status:</b> ${x.status}</p>
+${x.checkIn?`<p><b>Check In:</b> ${x.checkIn}</p>`:""}
+${x.checkOut?`<p><b>Check Out:</b> ${x.checkOut}</p>`:""}
+${x.workHours?`<p><b>Work Hours:</b> ${x.workHours}</p>`:""}
 
 </div>
 
@@ -70,10 +81,22 @@ leaveList.innerHTML=
 data.map(x=>`
 
 <div class="list-card">
-<b>${x.employee_name||""}</b>
-<p>${x.leave_type}</p>
-<p>${x.start_date}~${x.end_date}</p>
-<p>Days:${x.days}</p>
+<h3>${x.employee_name||""}</h3>
+<p><b>ID:</b> ${x.employee_id||"-"}</p>
+<p><b>Leave Type:</b> ${x.leave_type}</p>
+<p><b>Date:</b>${x.start_date} ~ ${x.end_date}</p>
+<p><b>Days:</b>${x.days}</p>
+<p><b>Reason:</b>${x.reason||"-"}</p>
+${x.attachment?
+`
+<p><b>Attachment:</b></p>
+<a href="${x.attachment}"target="_blank">📎 View Attachment</a>
+`
+:
+`<p><b>Attachment:</b> None</p>`
+}
+
+<p><b>Status:</b>${x.status}</p>
 
 ${["Supervisor","Admin"].includes(getUser().role)?
 `
@@ -134,10 +157,15 @@ leaveList.innerHTML=
 data.map(x=>`
 
 <div class="list-card">
-<b>${x.employee_name}</b>
+<h3>${x.employee_name}</h3>
+<p>ID:${x.employee_id}</p>
+<p>Branch:${x.branch_name}</p>
+<hr>
 <p>${x.leave_type}</p>
 <p>${x.start_date}~${x.end_date}</p>
-<span>${x.status}</span>
+<p>Days:${x.days}</p>
+<p>Status:${x.status}</p>
+<p>Reason:${x.reason||"-"}</p>
 
 </div>
 
@@ -154,10 +182,12 @@ leaveList.innerHTML=
 (r.data||[]).map(x=>`
 
 <div class="list-card">
-<b>${x.leave_type}</b>
-<p>Used : ${x.used}</p>
-
-<h3>Balance : ${x.balance}</h3>
+<h3>${x.employee_name||""}</h3>
+<p>Leave Type:${x.leave_type}</p>
+<p>Entitled:${x.entitled}</p>
+<p>Used:${x.used}</p>
+<p>Pending:${x.pending}</p>
+<h3>Balance:${x.balance}</h3>
 
 </div>
 
