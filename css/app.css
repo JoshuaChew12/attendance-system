@@ -891,6 +891,25 @@ border-radius:20px;
 box-shadow:0 8px 20px rgba(0,0,0,.08);
 }
 
+.export-result{
+position:fixed;
+bottom:80px;
+left:20px;
+right:20px;
+z-index:9999;
+}
+
+.export-download{
+display:block;
+margin-top:12px;
+padding:12px;
+background:#2563eb;
+color:white;
+text-align:center;
+border-radius:10px;
+text-decoration:none;
+}
+
 /* =====================================================
    LEAVE APPLY PAGE
 ===================================================== */
