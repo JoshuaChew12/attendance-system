@@ -1,13 +1,15 @@
 window.homeClock=null;
+let homeLoading=false;
 
-const set=(id,v)=>{
+function set(id,v){
 const e=document.getElementById(id);
 if(e)e.innerHTML=v;
-};
+}
 
 function startClock(){
 
 clearInterval(window.homeClock);
+window.homeClock=null;
 
 const run=()=>{
 const n=new Date();
@@ -29,6 +31,8 @@ window.homeClock=setInterval(run,1000);
 
 async function loadHome(){
 
+if(homeLoading)return;
+homeLoading=true;
 startClock();
 
 const btn=document.getElementById("cancelLeaveBtn");
@@ -89,14 +93,12 @@ set("statusEmoji",icon);
 if(bar)bar.style.width=pBar+"%";
 
 const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kuala_Lumpur"}).format(new Date());
-const weekday=new Intl.DateTimeFormat("en-US",{weekday:"long",timeZone:"Asia/Kuala_Lumpur"}).format(new Date());
-
 const cal=c.data||{};
 
 set("todayType",
 (cal.leave||[]).some(x=>x.date==today)?"Leave":
 (cal.holiday||[]).some(x=>x.date==today)?"Holiday":
-(cal.weeklyOff||[]).includes(weekday)?"Weekly Off":
+(cal.weeklyOff||[]).some(x=>x.date==today)?"Weekly Off":
 "Working Day");
 
 const leave=(l.data||[]).find(x=>
@@ -127,8 +129,11 @@ set("statusText","Error");
 
 }
 
+finally{homeLoading=false;}
+  
 }
 
-window.addEventListener("focus",()=>{
-if(document.getElementById("homeAvatar"))loadHome();
-});
+window.onfocus=()=>{
+if(document.getElementById("homeAvatar") &&!homeLoading)
+loadHome();
+};
