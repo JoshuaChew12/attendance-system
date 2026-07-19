@@ -1,26 +1,29 @@
 window.homeClock=null;
 
+const set=(id,v)=>{
+const e=document.getElementById(id);
+if(e)e.innerHTML=v;
+};
+
 function startClock(){
 
-clearInterval(homeClock);
+clearInterval(window.homeClock);
 
 const run=()=>{
 const n=new Date();
 
-liveClock.innerHTML=n.toLocaleTimeString("en-GB");
-
-todayDate.innerHTML=
-n.toLocaleDateString("en-GB",{
+set("liveClock",n.toLocaleTimeString("en-GB"));
+set("todayDate",n.toLocaleDateString("en-GB",{
 weekday:"long",
 day:"2-digit",
 month:"long",
 year:"numeric"
-});
+}));
 
 };
 
 run();
-homeClock=setInterval(run,1000);
+window.homeClock=setInterval(run,1000);
 
 }
 
@@ -28,12 +31,13 @@ async function loadHome(){
 
 startClock();
 
-const h=new Date().getHours();
+const btn=document.getElementById("cancelLeaveBtn");
+const bar=document.getElementById("progressBar");
 
-greeting.innerHTML=
-h<12?"☀️ Good Morning":
-h<18?"🌤️ Good Afternoon":
-"🌙 Good Evening";
+set("greeting",
+new Date().getHours()<12?"☀️ Good Morning":
+new Date().getHours()<18?"🌤️ Good Afternoon":
+"🌙 Good Evening");
 
 try{
 
@@ -49,110 +53,82 @@ apiGet({action:"getLeaveHistory"})
 
 const me=p.data||{};
 
-employeeName.innerHTML=me.name||"-";
-branchName.innerHTML=me.working_branch_name||"-";
+set("employeeName",me.name||"-");
+set("branchName",me.working_branch_name||"-");
 
 const img=document.getElementById("homeAvatar");
 
-if(img && me.photo){
-let p=me.photo;
-if(p.includes("drive.google.com")){
-const id=(p.match(/id=([^&]+)/)||[])[1];
-if(id) p="https://lh3.googleusercontent.com/d/"+id;}
-img.src=p+"?t="+Date.now();
+if(img&&me.photo){
+let url=me.photo;
+if(url.includes("drive.google.com")){
+const id=(url.match(/id=([^&]+)/)||[])[1];
+if(id)url="https://lh3.googleusercontent.com/d/"+id;
+}
+img.src=url+"?t="+Date.now();
 }
 
 const t=a.record||{};
+set("checkIn",t.checkIn||"--:--");
+set("checkOut",t.checkOut||"--:--");
 
-checkIn.innerHTML=t.checkIn||"--:--";
-checkOut.innerHTML=t.checkOut||"--:--";
-
-let pBar=0,
-txt="Not Started",
-icon="⏳";
+let pBar=0,txt="Not Started",icon="⏳";
 
 if(a.exists){
-
 pBar=50;
 txt="Working";
 icon=t.status=="Late"?"⚠️":"💼";
-
 if(t.checkOut){
-
 pBar=100;
 txt="Completed";
 icon="✅";
-
+}
 }
 
-}
+set("statusText",txt);
+set("statusEmoji",icon);
+if(bar)bar.style.width=pBar+"%";
 
-statusText.innerHTML=txt;
-statusEmoji.innerHTML=icon;
-progressBar.style.width=pBar+"%";
-
-const today =new Intl.DateTimeFormat("en-CA",
-{timeZone:"Asia/Kuala_Lumpur"}
-).format(new Date());
-
-const weekday =new Intl.DateTimeFormat("en-US",
-{weekday:"long",timeZone:"Asia/Kuala_Lumpur"}
-).format(new Date());
+const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kuala_Lumpur"}).format(new Date());
+const weekday=new Intl.DateTimeFormat("en-US",{weekday:"long",timeZone:"Asia/Kuala_Lumpur"}).format(new Date());
 
 const cal=c.data||{};
-const isLeave =(cal.leave||[]).some(x=>x.date==today);
-const isHoliday =(cal.holiday||[]).some(x=>x.date==today);
-const isWeeklyOff =(cal.weeklyOff||[]).includes(weekday);
 
-todayType.innerHTML =
-isLeave ? "Leave" :
-isHoliday ? "Holiday" :
-isWeeklyOff ? "Weekly Off" :
-"Working Day";
+set("todayType",
+(cal.leave||[]).some(x=>x.date==today)?"Leave":
+(cal.holiday||[]).some(x=>x.date==today)?"Holiday":
+(cal.weeklyOff||[]).includes(weekday)?"Weekly Off":
+"Working Day");
 
-const leave=(l.data||[])
-.find(x=>["Pending","Approved","Rejected"].includes(x.status));
+const leave=(l.data||[]).find(x=>
+["Pending","Approved","Rejected"].includes(x.status));
 
-leaveStatus.innerHTML=leave?
-`${leave.leave_type}<br>
-${leave.start_date} → ${leave.end_date}<br>
-${leave.days} Day(s)<br>
-${leave.status}`:"-";
+set("leaveStatus",leave?
+`${leave.leave_type}<br>${leave.start_date} → ${leave.end_date}<br>${leave.days} Day(s)<br>${leave.status}`:"-");
 
-cancelLeaveBtn.style.display=
-leave&&leave.status=="Pending"?"block":"none";
-
-cancelLeaveBtn.dataset.id=
-leave?leave.leave_id:"";
+if(btn){
+btn.style.display=leave&&leave.status=="Pending"?"block":"none";
+btn.dataset.id=leave?leave.leave_id:"";
+btn.onclick=async()=>{
+if(!btn.dataset.id)return;
+if(!confirm("Cancel this leave?"))return;
+const r=await apiPost({
+action:"cancelLeave",
+leave_id:btn.dataset.id
+});
+alert(r.message);
+if(r.success)loadHome();
+};
+}
 
 }catch(e){
 
-statusText.innerHTML="Error";
+console.error(e);
+set("statusText","Error");
 
 }
 
 }
-
-cancelLeaveBtn.onclick=async()=>{
-
-const id=cancelLeaveBtn.dataset.id;
-if(!id) return;
-if(!confirm("Cancel this leave?")) return;
-
-const r=await apiPost({
-action:"cancelLeave",
-leave_id:id
-});
-
-alert(r.message);
-if(r.success) loadHome();
-
-};
 
 window.addEventListener("focus",()=>{
-
-if(location.hash==="home" || 
-document.getElementById("homeAvatar"))
-loadHome();
-
+if(document.getElementById("homeAvatar"))loadHome();
 });
