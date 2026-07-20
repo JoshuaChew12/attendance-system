@@ -234,13 +234,12 @@ box.className="export-result";
 box.innerHTML=`
 
 <div class="list-card">
-
 <h3>✅ ${type} Export Completed</h3>
 <p>${r.fileName||"Report"}</p>
 
 <button
-class="export-download"
-id="downloadBtn">
+id="downloadBtn"
+class="export-download">
 ⬇️ Download File
 </button>
 
@@ -259,32 +258,16 @@ target="_blank">
 document.body.appendChild(box);
 document
 .getElementById("downloadBtn")
-.onclick=()=>{
-downloadExportBlob(r.downloadUrl,r.fileName);
-};
+.onclick=()=>{downloadExport(r.fileId);};
 
 }
 
-async function downloadExportBlob(url,fileName){
+function downloadExport(fileId){
 
-try{
-const res=await fetch(url,{method:"GET"});
-if(!res.ok)throw new Error("Download Failed");
-
-const blob=await res.blob();
-const blobUrl=window.URL.createObjectURL(blob);
-const a=document.createElement("a");
-
-a.href=blobUrl;
-a.download=fileName||"Report";
-
-document.body.appendChild(a);
-a.click();
-a.remove();
-
-setTimeout(()=>{window.URL.revokeObjectURL(blobUrl);},1000);
-}catch(e){
-alert("Download Error : "+e.message);
-}
+window.location=
+API_URL+
+"?action=downloadExport"+
+"&fileId="+encodeURIComponent(fileId)+
+"&token="+encodeURIComponent(localStorage.token);
 
 }
