@@ -226,26 +226,28 @@ showExportResult(r,type);
 
 function showExportResult(r,type){
 
-if(!r.downloadUrl){alert("File Generated But No Download Link");return;}
+let old=document.querySelector(".export-result");
+if(old)old.remove();
+
 const box=document.createElement("div");
 box.className="export-result";
 box.innerHTML=`
 
 <div class="list-card">
+
 <h3>✅ ${type} Export Completed</h3>
 <p>${r.fileName||"Report"}</p>
 
-<a
-href="${r.downloadUrl}"
-download
-class="export-download">
+<button
+class="export-download"
+id="downloadBtn">
 ⬇️ Download File
-</a>
+</button>
 
 <br><br>
 
 <a
-href="${r.viewUrl||r.openUrl||r.downloadUrl}"
+href="${r.viewUrl||r.openUrl}"
 target="_blank">
 👁️ View Drive File
 </a>
@@ -255,6 +257,34 @@ target="_blank">
 `;
 
 document.body.appendChild(box);
-setTimeout(()=>{box.remove();},15000);
+document
+.getElementById("downloadBtn")
+.onclick=()=>{
+downloadExportBlob(r.downloadUrl,r.fileName);
+};
+
+}
+
+async function downloadExportBlob(url,fileName){
+
+try{
+const res=await fetch(url,{method:"GET"});
+if(!res.ok)throw new Error("Download Failed");
+
+const blob=await res.blob();
+const blobUrl=window.URL.createObjectURL(blob);
+const a=document.createElement("a");
+
+a.href=blobUrl;
+a.download=fileName||"Report";
+
+document.body.appendChild(a);
+a.click();
+a.remove();
+
+setTimeout(()=>{window.URL.revokeObjectURL(blobUrl);},1000);
+}catch(e){
+alert("Download Error : "+e.message);
+}
 
 }
