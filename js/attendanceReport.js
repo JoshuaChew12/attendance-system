@@ -220,24 +220,34 @@ p.employee=att$("employeeID")?.value||"";
 
 const r=await apiGet(p);
 if(!r.success){alert(r.message||"Export Failed");return;}
-showExportResult(r.downloadUrl,type);
+showExportResult(r,type);
 
 }
 
-function showExportResult(url,type){
+function showExportResult(r,type){
 
-if(!url){alert("File Generated But No Download Link");return;}
+if(!r.downloadUrl){alert("File Generated But No Download Link");return;}
 const box=document.createElement("div");
 box.className="export-result";
 box.innerHTML=`
 
 <div class="list-card">
 <h3>✅ ${type} Export Completed</h3>
-<p>Your file is ready.</p>
-<a href="${url}"
-target="_blank"
+<p>${r.fileName||"Report"}</p>
+
+<a
+href="${r.downloadUrl}"
+download
 class="export-download">
-⬇️ Download ${type}
+⬇️ Download File
+</a>
+
+<br><br>
+
+<a
+href="${r.viewUrl||r.openUrl||r.downloadUrl}"
+target="_blank">
+👁️ View Drive File
 </a>
 
 </div>
