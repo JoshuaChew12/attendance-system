@@ -264,7 +264,16 @@ document
 
 function downloadExport(fileId){
 
-window.location=
+let frame=document.getElementById("downloadFrame");
+
+if(!frame){
+frame=document.createElement("iframe");
+frame.id="downloadFrame";
+frame.style.display="none";
+document.body.appendChild(frame);
+}
+
+frame.src=
 API_URL+
 "?action=downloadExport"+
 "&fileId="+encodeURIComponent(fileId)+
