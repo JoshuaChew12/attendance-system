@@ -260,17 +260,18 @@ att$("downloadBtn").onclick=()=>{downloadExport(r.fileId);};
 
 function downloadExport(fileId){
 
-let a=document.createElement("a");
-
-a.href=
+const url=
 API_URL+
 "?action=downloadExport"+
 "&fileId="+encodeURIComponent(fileId)+
 "&token="+encodeURIComponent(localStorage.token);
 
-a.style.display="none";
-document.body.appendChild(a);
-a.click();
-a.remove();
+const win=window.open(
+url,
+"downloadWindow",
+"width=1,height=1,left=0,top=0"
+);
+
+setTimeout(()=>{if(win){win.close();}},5000);
 
 }
