@@ -247,7 +247,7 @@ class="export-download">
 
 <a
 href="${r.viewUrl||r.openUrl}"
-target="_blank">
+target="_blank"
 class="export-view">
 👁️ View Drive File
 </a>
