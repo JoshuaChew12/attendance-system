@@ -226,20 +226,17 @@ showExportResult(r,type);
 
 function showExportResult(r,type){
 
-let old=document.querySelector(".export-result");
-if(old)old.remove();
-
 const box=document.createElement("div");
 box.className="export-result";
 box.innerHTML=`
 
-<div class="list-card">
+<div class="export-card">
 <h3>✅ ${type} Export Completed</h3>
 <p>${r.fileName||"Report"}</p>
 
 <button
-id="downloadBtn"
-class="export-download">
+class="export-download"
+id="downloadBtn">
 ⬇️ Download File
 </button>
 
@@ -256,28 +253,24 @@ class="export-view">
 
 `;
 
-document.body.appendChild(box);
-document
-.getElementById("downloadBtn")
-.onclick=()=>{downloadExport(r.fileId);};
+att$("exportResult").innerHTML=box.outerHTML;
+att$("downloadBtn").onclick=()=>{downloadExport(r.fileId);};
 
 }
 
 function downloadExport(fileId){
 
-let frame=document.getElementById("downloadFrame");
+let a=document.createElement("a");
 
-if(!frame){
-frame=document.createElement("iframe");
-frame.id="downloadFrame";
-frame.style.display="none";
-document.body.appendChild(frame);
-}
-
-frame.src=
+a.href=
 API_URL+
 "?action=downloadExport"+
 "&fileId="+encodeURIComponent(fileId)+
 "&token="+encodeURIComponent(localStorage.token);
+
+a.style.display="none";
+document.body.appendChild(a);
+a.click();
+a.remove();
 
 }
