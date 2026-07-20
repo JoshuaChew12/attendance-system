@@ -910,6 +910,19 @@ border-radius:10px;
 text-decoration:none;
 }
 
+.export-view{
+display:inline-block;
+padding:10px 16px;
+border-radius:10px;
+background:#10b981;
+color:#fff;
+text-decoration:none;
+font-weight:600;
+font-size:14px;
+}
+
+.export-view:hover{opacity:.9;}
+
 /* =====================================================
    LEAVE APPLY PAGE
 ===================================================== */
