@@ -53,7 +53,7 @@ action:"getCalendarData",
 month:new Date().toISOString().slice(0,7),
 employee_id:JSON.parse(localStorage.user).employee_id
 }),
-apiGet({action:"getLeaveHistory"})
+apiGet({action:"getMyLeave"})
 ]);
 
 const me=p.data||{};
