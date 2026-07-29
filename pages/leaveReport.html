@@ -1,0 +1,71 @@
+<div class="report-page">
+
+<h2>📝 Leave Report</h2>
+
+<div class="report-card">
+
+<h3>Filter</h3>
+
+<div class="filter-box">
+
+<div class="date-row">
+<input type="date" id="fromDate">
+<input type="date" id="toDate">
+</div>
+
+<div id="branchBox"></div>
+<div id="employeeBox"></div>
+<div id="leaveTypeBox"></div>
+<div id="statusBox"></div>
+
+<button onclick="searchLeave()">
+Search
+</button>
+
+</div>
+
+</div>
+
+<div id="reportKPI" class="mini-grid"></div>
+
+<div class="report-card">
+
+<h3>Export</h3>
+
+<div class="export-grid">
+
+<button onclick="exportLeave('PDF')">
+PDF
+</button>
+
+<button onclick="exportLeave('Excel')">
+Excel
+</button>
+
+<button onclick="exportLeave('CSV')">
+CSV
+</button>
+
+</div>
+
+<div id="exportResult"></div>
+
+</div>
+
+<div class="table-card">
+
+<div class="table-wrap">
+
+<div id="leaveResult">
+
+<div class="empty-report">
+Select Filter and press Search
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
