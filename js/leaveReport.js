@@ -66,8 +66,8 @@ let t=await apiGet({action:"getLeaveTypeList"});
 
 (t.data||[]).forEach(x=>{
 leaveType.innerHTML+=`
-<option value="${x.type_name}">
-${x.type_name}
+<option value="${x.id}">
+${x.name}
 </option>`;
 });
 
