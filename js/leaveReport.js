@@ -1,6 +1,6 @@
 window.leaveUser=JSON.parse(localStorage.user||"{}");
 window.leaveRows=[];
-const leave$=id=>document.getElementById(id);
+window.leave$=id=>document.getElementById(id);
 
 async function loadLeaveReport(){
 
