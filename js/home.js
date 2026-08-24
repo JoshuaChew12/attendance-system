@@ -1,6 +1,8 @@
 window.homeClock=null;
 window.homeLoading=false;
-window.homeLoaded=false;
+
+const HOME_CACHE="home_cache";
+const HOME_CACHE_TTL=30*60*1000;
 
 function set(id,v){
 const e=document.getElementById(id);
@@ -31,48 +33,44 @@ window.homeClock=setInterval(run,1000);
 
 }
 
-function getTodayMY(){
-
-return new Intl.DateTimeFormat("en-CA",{
-timeZone:"Asia/Kuala_Lumpur"
-}).format(new Date());
-
-}
-
-async function loadHome(force=false){
-
-if(window.homeLoading)return;
-if(window.homeLoaded&&!force)return;
-
-window.homeLoading=true;
-
-startClock();
-
-const btn=document.getElementById("cancelLeaveBtn");
-const bar=document.getElementById("progressBar");
-
-const h=new Date().getHours();
-
-set("greeting",
-h<12?"☀️ Good Morning":
-h<18?"🌤️ Good Afternoon":
-"🌙 Good Evening");
+function getHomeCache(){
 
 try{
 
-/* =====================================
-   STEP 1
-   最重要资料先加载
-===================================== */
-const [p,a]=await Promise.all([
+const x=JSON.parse(localStorage.getItem(HOME_CACHE)||"null");
 
-apiGet({action:"getProfile"}),
-apiGet({action:"getTodayAttendance"})
+if(!x||!x.time||Date.now()-x.time>HOME_CACHE_TTL)
+return null;
 
-]);
+return x.data||null;
 
-/* PROFILE */
-const me=p.data||{};
+}catch(e){
+
+return null;
+
+}
+
+}
+
+function saveHomeCache(data){
+
+try{
+
+localStorage.setItem(
+HOME_CACHE,
+JSON.stringify({
+time:Date.now(),
+data:data
+})
+);
+
+}catch(e){}
+
+}
+
+function renderHomeProfile(me){
+
+me=me||{};
 
 set("employeeName",me.name||"-");
 set("branchName",me.working_branch_name||"-");
@@ -84,16 +82,92 @@ if(img&&me.photo){
 let url=me.photo;
 
 if(url.includes("drive.google.com")){
+
 const id=(url.match(/id=([^&]+)/)||[])[1];
+
 if(id)
 url="https://lh3.googleusercontent.com/d/"+id;
+
 }
 
 img.src=url+"?t="+Date.now();
 
 }
 
-/* ATTENDANCE */
+}
+
+async function loadHome(){
+
+if(window.homeLoading)return;
+
+window.homeLoading=true;
+
+startClock();
+
+const btn=document.getElementById("cancelLeaveBtn");
+const bar=document.getElementById("progressBar");
+
+const h=new Date().getHours();
+
+set(
+"greeting",
+h<12?"☀️ Good Morning":
+h<18?"🌤️ Good Afternoon":
+"🌙 Good Evening"
+);
+
+try{
+
+/* =====================================
+   PROFILE
+===================================== */
+let me=getHomeCache();
+
+const profilePromise=me
+?Promise.resolve({data:me})
+:apiGet({action:"getProfile"});
+
+/* =====================================
+   REAL-TIME DATA
+===================================== */
+const [p,a,c,l]=await Promise.all([
+
+profilePromise,
+
+apiGet({
+action:"getTodayAttendance"
+}),
+
+apiGet({
+action:"getCalendarData",
+month:getCurrentMonth(),
+employee_id:JSON.parse(
+localStorage.getItem("user")||"{}"
+).employee_id
+}),
+
+apiGet({
+action:"getMyLeave"
+})
+
+]);
+
+/* PROFILE */
+
+if(!me){
+
+me=p.data||{};
+
+saveHomeCache(me);
+
+}
+
+renderHomeProfile(me);
+
+/* =====================================
+   TODAY ATTENDANCE
+   NEVER CACHE
+===================================== */
 const t=a.record||{};
 
 set("checkIn",t.checkIn||"--:--");
@@ -126,73 +200,35 @@ if(bar)
 bar.style.width=pBar+"%";
 
 /* =====================================
-   STEP 2
-   其他资料后台加载
-===================================== */
-loadHomeExtra(btn);
-window.homeLoaded=true;
-
-}catch(e){
-
-console.error(e);
-set("statusText","Error");
-
-}finally{
-
-window.homeLoading=false;
-
-}
-
-}
-
-/* =====================================
-   EXTRA DATA
-   不再阻塞 Home 首屏
-===================================== */
-async function loadHomeExtra(btn){
-
-try{
-
-const user=JSON.parse(
-localStorage.getItem("user")||"{}"
-);
-
-const today=getTodayMY();
-const [c,l]=await Promise.all([
-
-apiGet({
-action:"getCalendarData",
-month:today.slice(0,7),
-employee_id:user.employee_id
-}),
-
-apiGet({
-action:"getMyLeave"
-})
-
-]);
-
-/* =====================================
    TODAY TYPE
 ===================================== */
-const cal=c.data||{
-attendance:[],
-holiday:[],
-weeklyOff:[],
-leave:[]
-};
+const today=new Intl.DateTimeFormat(
+"en-CA",
+{
+timeZone:"Asia/Kuala_Lumpur"
+}
+).format(new Date());
 
-const type=
+const cal=c.data||{};
 
-(cal.leave||[]).some(x=>x.date==today)?"Leave":
-(cal.holiday||[]).some(x=>x.date==today)?"Holiday":
-(cal.weeklyOff||[]).some(x=>x.date==today)?"Weekly Off":
+set(
+"todayType",
 
-"Working Day";
-set("todayType",type);
+(cal.leave||[]).some(x=>x.date==today)
+?"Leave":
+
+(cal.holiday||[]).some(x=>x.date==today)
+?"Holiday":
+
+(cal.weeklyOff||[]).some(x=>x.date==today)
+?"Weekly Off":
+
+"Working Day"
+);
 
 /* =====================================
    LEAVE
+   NEVER CACHE
 ===================================== */
 const leave=(l.data||[]).find(x=>
 ["Pending","Approved","Rejected"].includes(x.status)
@@ -200,14 +236,17 @@ const leave=(l.data||[]).find(x=>
 
 set(
 "leaveStatus",
+
 leave?
-`${leave.leave_type}<br>${leave.start_date} → ${leave.end_date}<br>${leave.days} Day(s)<br>${leave.status}`
+
+`${leave.leave_type}<br>
+${leave.start_date} → ${leave.end_date}<br>
+${leave.days} Day(s)<br>
+${leave.status}`
+
 :"-"
 );
 
-/* =====================================
-   CANCEL LEAVE
-===================================== */
 if(btn){
 
 btn.style.display=
@@ -221,7 +260,9 @@ leave?leave.leave_id:"";
 btn.onclick=async()=>{
 
 if(!btn.dataset.id)return;
-if(!confirm("Cancel this leave?"))return;
+
+if(!confirm("Cancel this leave?"))
+return;
 
 const r=await apiPost({
 action:"cancelLeave",
@@ -232,8 +273,11 @@ alert(r.message);
 
 if(r.success){
 
-window.homeLoaded=false;
-loadHome(true);
+/*
+ * 不更新 cache
+ * 因为 leave 根本没有进入 home_cache
+ */
+loadHome();
 
 }
 
@@ -243,25 +287,26 @@ loadHome(true);
 
 }catch(e){
 
-console.error("Home extra:",e);
+console.error(e);
+
+set("statusText","Error");
+
+}
+
+finally{
+
+window.homeLoading=false;
 
 }
 
 }
 
-/* =====================================
-   FOCUS
-===================================== */
 window.onfocus=()=>{
 
 if(
-document.getElementById("homeAvatar")&&
-!window.homeLoading&&
-!window.homeLoaded
-){
-
+document.getElementById("homeAvatar") &&
+!window.homeLoading
+)
 loadHome();
-
-}
 
 };
