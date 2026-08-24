@@ -82,19 +82,22 @@ function buildCacheData(data){
 
 const today=getToday();
 
-return{
-
-attendance:(data.attendance||[])
-.filter(x=>x.date!=today),
-
-holiday:data.holiday||[],
-
-weeklyOff:data.weeklyOff||[],
-
-leave:(data.leave||[])
-.filter(x=>x.date!=today)
-
+const result={
+attendance:[],
+holiday:[],
+weeklyOff:[],
+leave:[]
 };
+
+["attendance","holiday","weeklyOff","leave"]
+.forEach(key=>{
+
+result[key]=(data[key]||[])
+.filter(x=>x.date<today);
+
+});
+
+return result;
 
 }
 
@@ -113,108 +116,34 @@ weeklyOff:[],
 leave:[]
 };
 
-/* =====================================
-   ATTENDANCE
-   TODAY ALWAYS FROM API
-===================================== */
+["attendance","holiday","weeklyOff","leave"]
+.forEach(key=>{
 
-const oldAttendance=
-(oldData.attendance||[])
-.filter(x=>x.date!=today);
+const map={};
 
-const newAttendance=
-(newData.attendance||[])
-.filter(x=>x.date!=today);
+/* =========================
+   PAST → CACHE
+========================= */
 
-const attendanceMap={};
-
-oldAttendance.forEach(x=>{
-attendanceMap[x.date]=x;
-});
-
-newAttendance.forEach(x=>{
-attendanceMap[x.date]=x;
-});
-
-result.attendance=
-Object.values(attendanceMap);
-
-/* =====================================
-   HOLIDAY
-===================================== */
-
-const holidayMap={};
-
-(oldData.holiday||[]).forEach(x=>{
-holidayMap[x.date]=x;
-});
-
-(newData.holiday||[]).forEach(x=>{
-holidayMap[x.date]=x;
-});
-
-result.holiday=
-Object.values(holidayMap);
-
-/* =====================================
-   WEEKLY OFF
-===================================== */
-
-const weeklyMap={};
-
-(oldData.weeklyOff||[]).forEach(x=>{
-weeklyMap[x.date]=x;
-});
-
-(newData.weeklyOff||[]).forEach(x=>{
-weeklyMap[x.date]=x;
-});
-
-result.weeklyOff=
-Object.values(weeklyMap);
-
-/* =====================================
-   LEAVE
-   TODAY NEVER CACHE
-===================================== */
-
-const leaveMap={};
-
-(oldData.leave||[])
-.filter(x=>x.date!=today)
+(oldData[key]||[])
+.filter(x=>x.date<today)
 .forEach(x=>{
-leaveMap[x.date]=x;
+map[x.date]=x;
 });
 
-(newData.leave||[])
-.filter(x=>x.date!=today)
+/* =========================
+   TODAY + FUTURE → API
+========================= */
+
+(newData[key]||[])
+.filter(x=>x.date>=today)
 .forEach(x=>{
-leaveMap[x.date]=x;
+map[x.date]=x;
 });
 
-result.leave=
-Object.values(leaveMap);
+result[key]=Object.values(map);
 
-/* =====================================
-   TODAY
-   ALWAYS KEEP API DATA IN MEMORY
-===================================== */
-
-const todayAttendance=
-(newData.attendance||[])
-.filter(x=>x.date==today);
-
-const todayLeave=
-(newData.leave||[])
-.filter(x=>x.date==today);
-
-result.attendance.push(
-...todayAttendance
-);
-
-result.leave.push(
-...todayLeave
-);
+});
 
 return result;
 
@@ -266,8 +195,10 @@ if(monthTitleEl)
 monthTitleEl.textContent=
 formatMonthTitle(currentMonth);
 
+
 /* =====================================
    1. CACHE FIRST
+   ONLY PAST DATA
 ===================================== */
 
 const cache=
@@ -279,18 +210,36 @@ cache[currentMonth];
 if(cached){
 
 calendarData={
-attendance:cached.attendance||[],
-holiday:cached.holiday||[],
-weeklyOff:cached.weeklyOff||[],
-leave:cached.leave||[]
+attendance:(cached.attendance||[])
+.filter(x=>x.date<getToday()),
+
+holiday:(cached.holiday||[])
+.filter(x=>x.date<getToday()),
+
+weeklyOff:(cached.weeklyOff||[])
+.filter(x=>x.date<getToday()),
+
+leave:(cached.leave||[])
+.filter(x=>x.date<getToday())
 };
 
 renderCalendar();
 
+}else{
+
+calendarData={
+attendance:[],
+holiday:[],
+weeklyOff:[],
+leave:[]
+};
+
 }
 
+
 /* =====================================
-   2. API UPDATE
+   2. API
+   TODAY + FUTURE
 ===================================== */
 
 try{
@@ -316,8 +265,12 @@ weeklyOff:[],
 leave:[]
 };
 
+
 /* =====================================
-   MERGE CACHE + API
+   3. MERGE
+   Past  = Cache
+   Today = API
+   Future= API
 ===================================== */
 
 calendarData=
@@ -326,21 +279,21 @@ calendarData,
 apiData
 );
 
+
 /* =====================================
-   SAVE ONLY NON-TODAY
+   4. SAVE ONLY PAST
 ===================================== */
 
-const cacheData=
+cache[currentMonth]=
 buildCacheData(
 calendarData
 );
 
-cache[currentMonth]=cacheData;
-
 saveCalendarCache(cache);
 
+
 /* =====================================
-   RENDER
+   5. FINAL RENDER
 ===================================== */
 
 renderCalendar();
