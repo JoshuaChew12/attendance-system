@@ -10,7 +10,7 @@ leave:[]
 const CALENDAR_CACHE_KEY="calendar_cache";
 
 /* =====================================
-   DATE
+   MONTH
 ===================================== */
 
 function getCurrentMonth(){
@@ -18,7 +18,9 @@ function getCurrentMonth(){
 return new Date()
 .toLocaleDateString(
 "en-CA",
-{timeZone:"Asia/Kuala_Lumpur"}
+{
+timeZone:"Asia/Kuala_Lumpur"
+}
 )
 .slice(0,7);
 
@@ -29,7 +31,9 @@ function getToday(){
 return new Date()
 .toLocaleDateString(
 "en-CA",
-{timeZone:"Asia/Kuala_Lumpur"}
+{
+timeZone:"Asia/Kuala_Lumpur"
+}
 );
 
 }
@@ -65,19 +69,159 @@ CALENDAR_CACHE_KEY,
 JSON.stringify(cache)
 );
 
-}catch(e){
-
-console.warn(
-"Calendar cache save failed",
-e
-);
-
-}
+}catch(e){}
 
 }
 
 /* =====================================
-   FORMAT MONTH
+   CACHE DATA
+   TODAY NEVER ENTERS CACHE
+===================================== */
+
+function buildCacheData(data){
+
+const today=getToday();
+
+return{
+
+attendance:(data.attendance||[])
+.filter(x=>x.date!=today),
+
+holiday:data.holiday||[],
+
+weeklyOff:data.weeklyOff||[],
+
+leave:(data.leave||[])
+.filter(x=>x.date!=today)
+
+};
+
+}
+
+/* =====================================
+   MERGE
+===================================== */
+
+function mergeCalendarData(oldData,newData){
+
+const today=getToday();
+
+const result={
+attendance:[],
+holiday:[],
+weeklyOff:[],
+leave:[]
+};
+
+/* =====================================
+   ATTENDANCE
+   TODAY ALWAYS FROM API
+===================================== */
+
+const oldAttendance=
+(oldData.attendance||[])
+.filter(x=>x.date!=today);
+
+const newAttendance=
+(newData.attendance||[])
+.filter(x=>x.date!=today);
+
+const attendanceMap={};
+
+oldAttendance.forEach(x=>{
+attendanceMap[x.date]=x;
+});
+
+newAttendance.forEach(x=>{
+attendanceMap[x.date]=x;
+});
+
+result.attendance=
+Object.values(attendanceMap);
+
+/* =====================================
+   HOLIDAY
+===================================== */
+
+const holidayMap={};
+
+(oldData.holiday||[]).forEach(x=>{
+holidayMap[x.date]=x;
+});
+
+(newData.holiday||[]).forEach(x=>{
+holidayMap[x.date]=x;
+});
+
+result.holiday=
+Object.values(holidayMap);
+
+/* =====================================
+   WEEKLY OFF
+===================================== */
+
+const weeklyMap={};
+
+(oldData.weeklyOff||[]).forEach(x=>{
+weeklyMap[x.date]=x;
+});
+
+(newData.weeklyOff||[]).forEach(x=>{
+weeklyMap[x.date]=x;
+});
+
+result.weeklyOff=
+Object.values(weeklyMap);
+
+/* =====================================
+   LEAVE
+   TODAY NEVER CACHE
+===================================== */
+
+const leaveMap={};
+
+(oldData.leave||[])
+.filter(x=>x.date!=today)
+.forEach(x=>{
+leaveMap[x.date]=x;
+});
+
+(newData.leave||[])
+.filter(x=>x.date!=today)
+.forEach(x=>{
+leaveMap[x.date]=x;
+});
+
+result.leave=
+Object.values(leaveMap);
+
+/* =====================================
+   TODAY
+   ALWAYS KEEP API DATA IN MEMORY
+===================================== */
+
+const todayAttendance=
+(newData.attendance||[])
+.filter(x=>x.date==today);
+
+const todayLeave=
+(newData.leave||[])
+.filter(x=>x.date==today);
+
+result.attendance.push(
+...todayAttendance
+);
+
+result.leave.push(
+...todayLeave
+);
+
+return result;
+
+}
+
+/* =====================================
+   MONTH TITLE
 ===================================== */
 
 function formatMonthTitle(month){
@@ -103,16 +247,6 @@ year:"numeric"
 
 /* =====================================
    LOAD CALENDAR
-
-   PAST
-   → CACHE
-
-   TODAY / FUTURE
-   → API
-
-   CURRENT MONTH
-   → API ONCE
-   → API PAST → SAVE CACHE
 ===================================== */
 
 async function loadCalendar(){
@@ -128,62 +262,35 @@ return;
 const monthTitleEl=
 document.getElementById("monthTitle");
 
-if(monthTitleEl){
-
+if(monthTitleEl)
 monthTitleEl.textContent=
 formatMonthTitle(currentMonth);
 
-}
-
-const today=getToday();
-const todayMonth=getCurrentMonth();
-
-const cache=getCalendarCache();
-
-const cachedMonth=
-cache[currentMonth]||{};
-
-const result={
-attendance:[],
-holiday:[],
-weeklyOff:[],
-leave:[]
-};
-
 /* =====================================
-   PAST MONTH
-   CACHE ONLY
+   1. CACHE FIRST
 ===================================== */
 
-if(currentMonth<todayMonth){
+const cache=
+getCalendarCache();
 
-["attendance","holiday","weeklyOff","leave"]
-.forEach(key=>{
+const cached=
+cache[currentMonth];
 
-(cachedMonth[key]||[])
-.forEach(x=>{
+if(cached){
 
-if(x.date<today){
-
-result[key].push(x);
-
-}
-
-});
-
-});
-
-window.calendarData=result;
+calendarData={
+attendance:cached.attendance||[],
+holiday:cached.holiday||[],
+weeklyOff:cached.weeklyOff||[],
+leave:cached.leave||[]
+};
 
 renderCalendar();
 
-return;
-
 }
 
 /* =====================================
-   CURRENT / FUTURE MONTH
-   API
+   2. API UPDATE
 ===================================== */
 
 try{
@@ -210,84 +317,31 @@ leave:[]
 };
 
 /* =====================================
-   PAST
-   ONLY SAVE API PAST INTO CACHE
-
-   TODAY / FUTURE NEVER CACHE
+   MERGE CACHE + API
 ===================================== */
 
-if(currentMonth===todayMonth){
+calendarData=
+mergeCalendarData(
+calendarData,
+apiData
+);
 
-const newCache={
-attendance:[],
-holiday:[],
-weeklyOff:[],
-leave:[]
-};
+/* =====================================
+   SAVE ONLY NON-TODAY
+===================================== */
 
-["attendance","holiday","weeklyOff","leave"]
-.forEach(key=>{
+const cacheData=
+buildCacheData(
+calendarData
+);
 
-newCache[key]=
-(apiData[key]||[])
-.filter(x=>x.date<today);
-
-});
-
-/* 保存当前月份 Past */
-
-cache[currentMonth]=newCache;
+cache[currentMonth]=cacheData;
 
 saveCalendarCache(cache);
 
-}
-
 /* =====================================
-   DISPLAY
-
-   PAST
-   → CACHE
-
-   TODAY / FUTURE
-   → API
+   RENDER
 ===================================== */
-
-["attendance","holiday","weeklyOff","leave"]
-.forEach(key=>{
-
-/* Past → Cache */
-
-(cachedMonth[key]||[])
-.forEach(x=>{
-
-if(x.date<today){
-
-result[key].push(x);
-
-}
-
-});
-
-/* Today + Future → API */
-
-(apiData[key]||[])
-.forEach(x=>{
-
-if(x.date>=today){
-
-result[key].push(x);
-
-}
-
-});
-
-});
-
-/* =====================================
-   FINAL DATA
-===================================== */
-
-window.calendarData=result;
 
 renderCalendar();
 
@@ -303,7 +357,7 @@ e
 }
 
 /* =====================================
-   GOTO TODAY
+   TODAY
 ===================================== */
 
 function gotoToday(){
@@ -645,7 +699,7 @@ loadPage("leaveApply");
 }
 
 /* =====================================
-   PREVIOUS MONTH
+   PREVIOUS
 ===================================== */
 
 function prevMonth(){
@@ -662,8 +716,7 @@ d.getMonth()-1
 currentMonth=
 d.toLocaleDateString(
 "en-CA"
-)
-.slice(0,7);
+).slice(0,7);
 
 window.selectedLeaveDate="";
 
@@ -672,7 +725,7 @@ loadCalendar();
 }
 
 /* =====================================
-   NEXT MONTH
+   NEXT
 ===================================== */
 
 function nextMonth(){
@@ -689,8 +742,7 @@ d.getMonth()+1
 currentMonth=
 d.toLocaleDateString(
 "en-CA"
-)
-.slice(0,7);
+).slice(0,7);
 
 window.selectedLeaveDate="";
 
