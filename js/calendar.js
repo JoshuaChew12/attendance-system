@@ -73,27 +73,222 @@ JSON.stringify(cache)
 
 }
 
+
 /* =====================================
-   CACHE DATA
-   TODAY NEVER ENTERS CACHE
+   CACHE STRUCTURE
+
+   {
+     past:{
+       "2026-08":{
+         attendance:[],
+         holiday:[],
+         weeklyOff:[],
+         leave:[]
+       }
+     },
+
+     api:{
+       "2026-08":{
+         date:"2026-08-24",
+         data:{
+           attendance:[],
+           holiday:[],
+           weeklyOff:[],
+           leave:[]
+         }
+       }
+     }
+   }
+
 ===================================== */
 
-function buildCacheData(data){
 
-const today=getToday();
+/* =====================================
+   EMPTY DATA
+===================================== */
 
-const result={
+function emptyCalendarData(){
+
+return{
 attendance:[],
 holiday:[],
 weeklyOff:[],
 leave:[]
 };
 
-["attendance","holiday","weeklyOff","leave"]
+}
+
+
+/* =====================================
+   NORMALIZE DATA
+===================================== */
+
+function normalizeCalendarData(data){
+
+data=data||{};
+
+return{
+attendance:Array.isArray(data.attendance)
+?data.attendance
+:[],
+
+holiday:Array.isArray(data.holiday)
+?data.holiday
+:[],
+
+weeklyOff:Array.isArray(data.weeklyOff)
+?data.weeklyOff
+:[],
+
+leave:Array.isArray(data.leave)
+?data.leave
+:[]
+};
+
+}
+
+
+/* =====================================
+   GET PAST CACHE
+===================================== */
+
+function getPastCache(cache,month){
+
+/*
+   新格式
+*/
+
+if(
+cache.past &&
+cache.past[month]
+){
+
+return normalizeCalendarData(
+cache.past[month]
+);
+
+}
+
+
+/*
+   兼容旧格式
+
+   旧结构：
+
+   cache["2026-08"]={
+      attendance:[],
+      holiday:[],
+      weeklyOff:[],
+      leave:[]
+   }
+
+*/
+
+if(
+cache[month] &&
+typeof cache[month]==="object" &&
+!Array.isArray(cache[month])
+){
+
+return normalizeCalendarData(
+cache[month]
+);
+
+}
+
+return emptyCalendarData();
+
+}
+
+
+/* =====================================
+   SAVE PAST CACHE
+===================================== */
+
+function savePastCache(cache,month,data){
+
+if(!cache.past)
+cache.past={};
+
+cache.past[month]=
+normalizeCalendarData(data);
+
+}
+
+
+/* =====================================
+   GET API SNAPSHOT
+===================================== */
+
+function getApiSnapshot(cache,month){
+
+if(
+!cache.api ||
+!cache.api[month]
+){
+
+return null;
+
+}
+
+return cache.api[month];
+
+}
+
+
+/* =====================================
+   SAVE API SNAPSHOT
+===================================== */
+
+function saveApiSnapshot(
+cache,
+month,
+date,
+data
+){
+
+if(!cache.api)
+cache.api={};
+
+cache.api[month]={
+date:date,
+data:normalizeCalendarData(data)
+};
+
+}
+
+
+/* =====================================
+   BUILD PAST DATA
+
+   Only dates before TODAY
+   are permanently cached.
+
+===================================== */
+
+function buildPastData(data){
+
+const today=getToday();
+
+const result=emptyCalendarData();
+
+[
+"attendance",
+"holiday",
+"weeklyOff",
+"leave"
+]
 .forEach(key=>{
 
-result[key]=(data[key]||[])
-.filter(x=>x.date<today);
+result[key]=
+(data[key]||[])
+.filter(x=>{
+
+return x &&
+x.date &&
+x.date<today;
+
+});
 
 });
 
@@ -101,53 +296,220 @@ return result;
 
 }
 
+
 /* =====================================
-   MERGE
+   MERGE PAST CACHE + API
+
+   Past:
+      CACHE wins
+
+   Today/Future:
+      API wins
+
 ===================================== */
 
-function mergeCalendarData(oldData,newData){
+function mergeCalendarData(
+pastData,
+apiData
+){
 
 const today=getToday();
 
-const result={
-attendance:[],
-holiday:[],
-weeklyOff:[],
-leave:[]
-};
+const result=emptyCalendarData();
 
-["attendance","holiday","weeklyOff","leave"]
+[
+"attendance",
+"holiday",
+"weeklyOff",
+"leave"
+]
 .forEach(key=>{
 
 const map={};
 
-/* =========================
-   PAST → CACHE
-========================= */
 
-(oldData[key]||[])
-.filter(x=>x.date<today)
+/* =====================================
+   1. PAST CACHE
+===================================== */
+
+(pastData[key]||[])
+.filter(x=>{
+
+return x &&
+x.date &&
+x.date<today;
+
+})
 .forEach(x=>{
+
 map[x.date]=x;
+
 });
 
-/* =========================
-   TODAY + FUTURE → API
-========================= */
 
-(newData[key]||[])
-.filter(x=>x.date>=today)
+/* =====================================
+   2. API
+=====================================
+
+   API can contain:
+
+   Past
+   Today
+   Future
+
+   But only Today/Future are allowed
+   to overwrite the permanent cache.
+
+*/
+
+(apiData[key]||[])
+.filter(x=>{
+
+return x &&
+x.date &&
+x.date>=today;
+
+})
 .forEach(x=>{
+
 map[x.date]=x;
+
 });
 
-result[key]=Object.values(map);
+
+/* =====================================
+   3. RESULT
+===================================== */
+
+result[key]=Object.values(map)
+.sort((a,b)=>{
+
+return String(a.date)
+.localeCompare(String(b.date));
+
+});
 
 });
 
 return result;
 
 }
+
+
+/* =====================================
+   MOVE API PAST → PERMANENT CACHE
+
+   Example:
+
+   Today = 25 Aug
+
+   Yesterday = 24 Aug
+
+   Previous API snapshot:
+
+   24
+   25
+   26
+   27
+   ...
+
+   24 is now permanently moved into Past Cache.
+
+===================================== */
+
+function updatePastCacheFromApi(
+cache,
+month,
+apiData
+){
+
+const today=getToday();
+
+const past=
+getPastCache(
+cache,
+month
+);
+
+const result=normalizeCalendarData(past);
+
+[
+"attendance",
+"holiday",
+"weeklyOff",
+"leave"
+]
+.forEach(key=>{
+
+const map={};
+
+
+/* =====================================
+   EXISTING PAST CACHE
+===================================== */
+
+(result[key]||[])
+.filter(x=>{
+
+return x &&
+x.date &&
+x.date<today;
+
+})
+.forEach(x=>{
+
+map[x.date]=x;
+
+});
+
+
+/* =====================================
+   PREVIOUS API DATA
+
+   Anything that is now Past
+   becomes permanent cache.
+
+   Existing cache wins.
+
+===================================== */
+
+(apiData[key]||[])
+.filter(x=>{
+
+return x &&
+x.date &&
+x.date<today;
+
+})
+.forEach(x=>{
+
+if(!map[x.date])
+map[x.date]=x;
+
+});
+
+
+result[key]=Object.values(map)
+.sort((a,b)=>{
+
+return String(a.date)
+.localeCompare(String(b.date));
+
+});
+
+});
+
+
+savePastCache(
+cache,
+month,
+result
+);
+
+return result;
+
+}
+
 
 /* =====================================
    MONTH TITLE
@@ -174,6 +536,7 @@ year:"numeric"
 
 }
 
+
 /* =====================================
    LOAD CALENDAR
 ===================================== */
@@ -188,6 +551,11 @@ localStorage.getItem("user")||"{}"
 if(!user.employee_id)
 return;
 
+
+/* =====================================
+   MONTH TITLE
+===================================== */
+
 const monthTitleEl=
 document.getElementById("monthTitle");
 
@@ -197,49 +565,225 @@ formatMonthTitle(currentMonth);
 
 
 /* =====================================
-   1. CACHE FIRST
-   ONLY PAST DATA
+   TODAY
+===================================== */
+
+const today=
+getToday();
+
+const todayMonth=
+today.slice(0,7);
+
+
+/* =====================================
+   CACHE
 ===================================== */
 
 const cache=
 getCalendarCache();
 
-const cached=
-cache[currentMonth];
 
-if(cached){
+/* =====================================
+   PAST CACHE
+===================================== */
 
-calendarData={
-attendance:(cached.attendance||[])
-.filter(x=>x.date<getToday()),
+let pastData=
+getPastCache(
+cache,
+currentMonth
+);
 
-holiday:(cached.holiday||[])
-.filter(x=>x.date<getToday()),
 
-weeklyOff:(cached.weeklyOff||[])
-.filter(x=>x.date<getToday()),
+/* =====================================
+   API SNAPSHOT
+===================================== */
 
-leave:(cached.leave||[])
-.filter(x=>x.date<getToday())
-};
+const apiSnapshot=
+getApiSnapshot(
+cache,
+currentMonth
+);
 
-renderCalendar();
 
-}else{
+/* =====================================
+   IF API SNAPSHOT EXISTS
+===================================== */
 
-calendarData={
-attendance:[],
-holiday:[],
-weeklyOff:[],
-leave:[]
-};
+if(apiSnapshot){
+
+/*
+   如果之前 API 是昨天：
+
+   例如：
+
+   API date = 23
+   TODAY   = 24
+
+   23 已经变成 Past
+
+   所以先把它永久保存。
+
+*/
+
+if(apiSnapshot.data){
+
+pastData=
+updatePastCacheFromApi(
+cache,
+currentMonth,
+apiSnapshot.data
+);
+
+saveCalendarCache(cache);
 
 }
 
 
 /* =====================================
-   2. API
-   TODAY + FUTURE
+   API SNAPSHOT IS TODAY
+===================================== */
+
+if(
+apiSnapshot.date===today
+){
+
+/*
+   今天已经 API 过。
+
+   不再 API。
+
+   直接：
+
+   Past Cache
+   +
+   Today/Future API Snapshot
+*/
+
+calendarData=
+mergeCalendarData(
+pastData,
+apiSnapshot.data
+);
+
+renderCalendar();
+
+return;
+
+}
+
+}
+
+
+/* =====================================
+   PAST MONTH
+===================================== */
+
+if(
+currentMonth<todayMonth
+){
+
+/*
+   整个月都是 Past。
+
+   如果已经有 cache：
+
+      直接使用。
+
+   不 API。
+
+*/
+
+if(
+pastData.attendance.length ||
+pastData.holiday.length ||
+pastData.weeklyOff.length ||
+pastData.leave.length
+){
+
+calendarData=
+pastData;
+
+renderCalendar();
+
+return;
+
+}
+
+
+/*
+   没有 cache。
+
+   第一次进入旧月份，
+   需要 API 一次取得历史资料。
+
+*/
+
+try{
+
+const r=await apiGet({
+
+action:"getCalendarData",
+
+month:currentMonth,
+
+employee_id:user.employee_id
+
+});
+
+if(!r.success)
+return;
+
+const apiData=
+normalizeCalendarData(
+r.data
+);
+
+
+/*
+   整个月都是 Past，
+   所以全部永久 Cache。
+
+*/
+
+savePastCache(
+cache,
+currentMonth,
+apiData
+);
+
+saveCalendarCache(cache);
+
+calendarData=
+apiData;
+
+renderCalendar();
+
+return;
+
+}catch(e){
+
+console.error(
+"Calendar Load Error:",
+e
+);
+
+return;
+
+}
+
+}
+
+
+/* =====================================
+   CURRENT / FUTURE MONTH
+=====================================
+
+   Current Month:
+      Today/Future → API
+
+   Future Month:
+      API
+
 ===================================== */
 
 try{
@@ -258,42 +802,96 @@ if(!r.success)
 return;
 
 const apiData=
-r.data||{
-attendance:[],
-holiday:[],
-weeklyOff:[],
-leave:[]
-};
+normalizeCalendarData(
+r.data
+);
 
 
 /* =====================================
-   3. MERGE
-   Past  = Cache
-   Today = API
-   Future= API
-===================================== */
+   SAVE PAST FIRST
+=====================================
 
-calendarData=
-mergeCalendarData(
-calendarData,
+   如果 API 本身已经包含 Past：
+
+   Past 不丢失。
+
+*/
+
+pastData=
+updatePastCacheFromApi(
+cache,
+currentMonth,
 apiData
 );
 
 
 /* =====================================
-   4. SAVE ONLY PAST
+   SAVE TODAY API SNAPSHOT
 ===================================== */
 
-cache[currentMonth]=
-buildCacheData(
-calendarData
+if(
+currentMonth===todayMonth
+){
+
+/*
+   当前月份：
+
+   记录今天已经 API。
+
+   今天再次进入：
+   不再 API。
+
+*/
+
+saveApiSnapshot(
+cache,
+currentMonth,
+today,
+apiData
 );
+
+}else{
+
+/*
+   Future Month：
+
+   仍然保存 API snapshot。
+
+   当前日期作为 snapshot date，
+   防止同一天重复 API。
+
+*/
+
+saveApiSnapshot(
+cache,
+currentMonth,
+today,
+apiData
+);
+
+}
+
+
+/* =====================================
+   SAVE CACHE
+===================================== */
 
 saveCalendarCache(cache);
 
 
 /* =====================================
-   5. FINAL RENDER
+   MERGE
+===================================== */
+
+calendarData=
+mergeCalendarData(
+pastData,
+apiData
+);
+
+
+/* =====================================
+   RENDER
 ===================================== */
 
 renderCalendar();
@@ -309,22 +907,31 @@ e
 
 }
 
+
 /* =====================================
    TODAY
 ===================================== */
 
 function gotoToday(){
 
-const today=getCurrentMonth();
+const todayMonth=
+getCurrentMonth();
 
-if(currentMonth!==today)
-currentMonth=today;
+if(
+currentMonth!==todayMonth
+){
+
+currentMonth=
+todayMonth;
+
+}
 
 window.selectedLeaveDate="";
 
 loadCalendar();
 
 }
+
 
 /* =====================================
    DAY STATUS
@@ -345,6 +952,7 @@ cls:"leave-day",
 data:x
 };
 
+
 x=
 calendarData.attendance.find(
 a=>a.date==date
@@ -361,6 +969,7 @@ x.type=="Late"
 data:x
 };
 
+
 x=
 calendarData.holiday.find(
 a=>a.date==date
@@ -373,6 +982,7 @@ label:"H",
 cls:"holiday-day",
 data:x
 };
+
 
 x=
 calendarData.weeklyOff.find(
@@ -387,6 +997,7 @@ cls:"weekly-day",
 data:x
 };
 
+
 return{
 type:"",
 label:"",
@@ -395,6 +1006,7 @@ data:null
 };
 
 }
+
 
 /* =====================================
    RENDER
@@ -412,10 +1024,12 @@ return;
 
 grid.innerHTML="";
 
+
 const [y,m]=
 currentMonth
 .split("-")
 .map(Number);
+
 
 const start=
 new Date(
@@ -424,6 +1038,7 @@ m-1,
 1
 ).getDay();
 
+
 const total=
 new Date(
 y,
@@ -431,7 +1046,10 @@ m,
 0
 ).getDate();
 
-const today=getToday();
+
+const today=
+getToday();
+
 
 for(let i=0;i<start;i++){
 
@@ -440,6 +1058,7 @@ grid.innerHTML+=
 
 }
 
+
 for(let i=1;i<=total;i++){
 
 const date=
@@ -447,29 +1066,38 @@ currentMonth+
 "-"+
 String(i).padStart(2,"0");
 
+
 const s=
 getDayStatus(date);
 
+
 const d=
 document.createElement("div");
+
 
 d.className=
 "day "+
 s.cls+
 (date==today?" today":"");
 
+
 d.innerHTML=
 `<div>${i}<small>${s.label}</small></div>`;
 
+
 d.onclick=()=>{
+
 showDetail(date);
+
 };
+
 
 grid.appendChild(d);
 
 }
 
 }
+
 
 /* =====================================
    DETAIL
@@ -479,16 +1107,20 @@ function showDetail(date){
 
 window.selectedLeaveDate=date;
 
+
 const box=
 document.getElementById(
 "detailBox"
 );
 
+
 const status=
 getDayStatus(date);
 
+
 if(!box)
 return;
+
 
 switch(status.type){
 
@@ -502,6 +1134,7 @@ status.data
 
 break;
 
+
 case "Holiday":
 
 box.innerHTML=
@@ -512,6 +1145,7 @@ status.data
 
 break;
 
+
 case "Weekly Off":
 
 box.innerHTML=
@@ -521,6 +1155,7 @@ status.data
 );
 
 break;
+
 
 case "Present":
 case "Late":
@@ -533,6 +1168,7 @@ status
 
 break;
 
+
 default:
 
 box.innerHTML=
@@ -542,11 +1178,15 @@ renderEmptyDetail(date);
 
 }
 
+
 /* =====================================
    ATTENDANCE DETAIL
 ===================================== */
 
-function renderAttendanceDetail(date,s){
+function renderAttendanceDetail(
+date,
+s
+){
 
 const a=s.data;
 
@@ -563,11 +1203,15 @@ return `
 
 }
 
+
 /* =====================================
    LEAVE DETAIL
 ===================================== */
 
-function renderLeaveDetail(date,l){
+function renderLeaveDetail(
+date,
+l
+){
 
 return `
 <h3>${date}</h3>
@@ -584,11 +1228,15 @@ return `
 
 }
 
+
 /* =====================================
    HOLIDAY
 ===================================== */
 
-function renderHolidayDetail(date,h){
+function renderHolidayDetail(
+date,
+h
+){
 
 return `
 <h3>${date}</h3>
@@ -599,11 +1247,15 @@ return `
 
 }
 
+
 /* =====================================
    WEEKLY OFF
 ===================================== */
 
-function renderWeeklyOffDetail(date,w){
+function renderWeeklyOffDetail(
+date,
+w
+){
 
 return `
 <h3>${date}</h3>
@@ -613,6 +1265,7 @@ return `
 `;
 
 }
+
 
 /* =====================================
    EMPTY
@@ -633,6 +1286,7 @@ onclick="openLeaveApply()">
 
 }
 
+
 /* =====================================
    APPLY LEAVE
 ===================================== */
@@ -642,14 +1296,17 @@ function openLeaveApply(){
 const date=
 window.selectedLeaveDate||"";
 
+
 sessionStorage.setItem(
 "leaveStartDate",
 date
 );
 
+
 loadPage("leaveApply");
 
 }
+
 
 /* =====================================
    PREVIOUS
@@ -662,20 +1319,29 @@ new Date(
 currentMonth+"-01"
 );
 
+
 d.setMonth(
 d.getMonth()-1
 );
 
+
 currentMonth=
 d.toLocaleDateString(
-"en-CA"
-).slice(0,7);
+"en-CA",
+{
+timeZone:"Asia/Kuala_Lumpur"
+}
+)
+.slice(0,7);
+
 
 window.selectedLeaveDate="";
+
 
 loadCalendar();
 
 }
+
 
 /* =====================================
    NEXT
@@ -688,16 +1354,24 @@ new Date(
 currentMonth+"-01"
 );
 
+
 d.setMonth(
 d.getMonth()+1
 );
 
+
 currentMonth=
 d.toLocaleDateString(
-"en-CA"
-).slice(0,7);
+"en-CA",
+{
+timeZone:"Asia/Kuala_Lumpur"
+}
+)
+.slice(0,7);
+
 
 window.selectedLeaveDate="";
+
 
 loadCalendar();
 
