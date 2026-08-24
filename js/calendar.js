@@ -174,19 +174,12 @@ return;
 
 }
 
-/* =====================================
-   NO CACHE
-   API ONCE
-===================================== */
-
 try{
 
 const r=await apiGet({
 
 action:"getCalendarData",
-
 month:currentMonth,
-
 employee_id:user.employee_id
 
 });
@@ -236,9 +229,7 @@ try{
 const r=await apiGet({
 
 action:"getCalendarData",
-
 month:currentMonth,
-
 employee_id:user.employee_id
 
 });
@@ -256,68 +247,65 @@ leave:[]
 
 /* =====================================
    CURRENT MONTH
-
-   Past   = Cache
-   Today  = API
-   Future = API
 ===================================== */
 
 if(currentMonth===todayMonth){
 
-const past=
-cached||{
-attendance:[],
-holiday:[],
-weeklyOff:[],
-leave:[]
-};
+/*
+   API 的 Past
+   → 更新 Cache
 
-const pastData={
-attendance:(past.attendance||[])
-.filter(x=>x.date<today),
+   API 的 Today/Future
+   → 不进入 Cache
+*/
 
-holiday:(past.holiday||[])
-.filter(x=>x.date<today),
+const apiPast=buildCacheData(apiData);
 
-weeklyOff:(past.weeklyOff||[])
-.filter(x=>x.date<today),
+/*
+   如果已有 Cache：
+   API 是最新资料
+   所以 API Past 覆盖旧 Cache
+*/
 
-leave:(past.leave||[])
-.filter(x=>x.date<today)
-};
+cache[currentMonth]=apiPast;
+
+saveCalendarCache(cache);
+
+/* =====================================
+   DISPLAY
+
+   Past   → Cache
+   Today  → API
+   Future → API
+===================================== */
 
 calendarData={
 
 attendance:[
-...pastData.attendance,
+...(apiPast.attendance||[]),
 ...(apiData.attendance||[])
+.filter(x=>x.date>=today)
 ],
 
 holiday:[
-...pastData.holiday,
+...(apiPast.holiday||[]),
 ...(apiData.holiday||[])
+.filter(x=>x.date>=today)
 ],
 
 weeklyOff:[
-...pastData.weeklyOff,
+...(apiPast.weeklyOff||[]),
 ...(apiData.weeklyOff||[])
+.filter(x=>x.date>=today)
 ],
 
 leave:[
-...pastData.leave,
+...(apiPast.leave||[]),
 ...(apiData.leave||[])
+.filter(x=>x.date>=today)
 ]
 
 };
-
-/* =====================================
-   SAVE PAST ONLY
-===================================== */
-
-cache[currentMonth]=
-buildCacheData(apiData);
-
-saveCalendarCache(cache);
 
 }else{
 
