@@ -101,6 +101,29 @@ leave:(data.leave||[])
 }
 
 /* =====================================
+   MERGE PAST CACHE
+   OLD CACHE + NEW API
+===================================== */
+
+function mergePastList(oldList,newList){
+
+const map={};
+
+[
+...(oldList||[]),
+...(newList||[])
+].forEach(x=>{
+
+if(x&&x.date)
+map[x.date]=x;
+
+});
+
+return Object.values(map);
+
+}
+
+/* =====================================
    MONTH TITLE
 ===================================== */
 
@@ -179,7 +202,9 @@ try{
 const r=await apiGet({
 
 action:"getCalendarData",
+
 month:currentMonth,
+
 employee_id:user.employee_id
 
 });
@@ -229,7 +254,9 @@ try{
 const r=await apiGet({
 
 action:"getCalendarData",
+
 month:currentMonth,
+
 employee_id:user.employee_id
 
 });
@@ -252,22 +279,57 @@ leave:[]
 if(currentMonth===todayMonth){
 
 /*
-   API 的 Past
-   → 更新 Cache
+   API Past
+   → 更新 Past Cache
 
-   API 的 Today/Future
-   → 不进入 Cache
+   Today / Future
+   → API ONLY
 */
 
-const apiPast=buildCacheData(apiData);
+const apiPast=
+buildCacheData(apiData);
 
-/*
-   如果已有 Cache：
-   API 是最新资料
-   所以 API Past 覆盖旧 Cache
-*/
+const oldPast=
+cache[currentMonth]||{
+attendance:[],
+holiday:[],
+weeklyOff:[],
+leave:[]
+};
 
-cache[currentMonth]=apiPast;
+/* =====================================
+   MERGE OLD CACHE + API PAST
+===================================== */
+
+const currentPast={
+
+attendance:mergePastList(
+oldPast.attendance,
+apiPast.attendance
+),
+
+holiday:mergePastList(
+oldPast.holiday,
+apiPast.holiday
+),
+
+weeklyOff:mergePastList(
+oldPast.weeklyOff,
+apiPast.weeklyOff
+),
+
+leave:mergePastList(
+oldPast.leave,
+apiPast.leave
+)
+
+};
+
+/* =====================================
+   SAVE PAST ONLY
+===================================== */
+
+cache[currentMonth]=currentPast;
 
 saveCalendarCache(cache);
 
@@ -282,25 +344,25 @@ saveCalendarCache(cache);
 calendarData={
 
 attendance:[
-...(apiPast.attendance||[]),
+...(currentPast.attendance||[]),
 ...(apiData.attendance||[])
 .filter(x=>x.date>=today)
 ],
 
 holiday:[
-...(apiPast.holiday||[]),
+...(currentPast.holiday||[]),
 ...(apiData.holiday||[])
 .filter(x=>x.date>=today)
 ],
 
 weeklyOff:[
-...(apiPast.weeklyOff||[]),
+...(currentPast.weeklyOff||[]),
 ...(apiData.weeklyOff||[])
 .filter(x=>x.date>=today)
 ],
 
 leave:[
-...(apiPast.leave||[]),
+...(currentPast.leave||[]),
 ...(apiData.leave||[])
 .filter(x=>x.date>=today)
 ]
