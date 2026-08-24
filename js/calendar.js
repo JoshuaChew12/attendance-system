@@ -40,6 +40,7 @@ timeZone:"Asia/Kuala_Lumpur"
 
 /* =====================================
    CACHE
+   DATE BASED
 ===================================== */
 
 function getCalendarCache(){
@@ -74,52 +75,175 @@ JSON.stringify(cache)
 }
 
 /* =====================================
-   BUILD PAST CACHE
-   ONLY PAST DATA
+   DATE CACHE
+   ONLY PAST
 ===================================== */
 
-function buildCacheData(data){
-
-const today=getToday();
+function getPastData(data,date){
 
 return{
 
 attendance:(data.attendance||[])
-.filter(x=>x.date<today),
+.filter(x=>x.date==date),
 
 holiday:(data.holiday||[])
-.filter(x=>x.date<today),
+.filter(x=>x.date==date),
 
 weeklyOff:(data.weeklyOff||[])
-.filter(x=>x.date<today),
+.filter(x=>x.date==date),
 
 leave:(data.leave||[])
-.filter(x=>x.date<today)
+.filter(x=>x.date==date)
 
 };
 
 }
 
 /* =====================================
-   MERGE PAST CACHE
-   OLD CACHE + NEW API
+   ADD API PAST DATA TO CACHE
 ===================================== */
 
-function mergePastList(oldList,newList){
+function updateCalendarCache(cache,data,today){
 
-const map={};
+const dates=new Set();
 
 [
-...(oldList||[]),
-...(newList||[])
+...(data.attendance||[]),
+...(data.holiday||[]),
+...(data.weeklyOff||[]),
+...(data.leave||[])
 ].forEach(x=>{
 
-if(x&&x.date)
-map[x.date]=x;
+if(x.date && x.date<today)
+dates.add(x.date);
 
 });
 
-return Object.values(map);
+/*
+   API 只会返回有记录的日期。
+   所以这里只更新 API 实际存在的日期。
+*/
+
+dates.forEach(date=>{
+
+cache[date]=getPastData(
+data,
+date
+);
+
+});
+
+return cache;
+
+}
+
+/* =====================================
+   BUILD DISPLAY DATA
+===================================== */
+
+function buildCalendarDisplay(cache,data,today){
+
+const result={
+attendance:[],
+holiday:[],
+weeklyOff:[],
+leave:[]
+};
+
+const dates=new Set();
+
+/* =====================================
+   API DATES
+===================================== */
+
+[
+...(data.attendance||[]),
+...(data.holiday||[]),
+...(data.weeklyOff||[]),
+...(data.leave||[])
+].forEach(x=>{
+
+if(x.date)
+dates.add(x.date);
+
+});
+
+/* =====================================
+   CACHE PAST DATES
+===================================== */
+
+Object.keys(cache).forEach(date=>{
+
+if(date<today)
+dates.add(date);
+
+});
+
+/* =====================================
+   BUILD DAY BY DAY
+===================================== */
+
+dates.forEach(date=>{
+
+/*
+   Past
+   → Cache
+*/
+
+if(date<today){
+
+const x=cache[date];
+
+if(!x)return;
+
+result.attendance.push(
+...(x.attendance||[])
+);
+
+result.holiday.push(
+...(x.holiday||[])
+);
+
+result.weeklyOff.push(
+...(x.weeklyOff||[])
+);
+
+result.leave.push(
+...(x.leave||[])
+);
+
+return;
+
+}
+
+/*
+   Today / Future
+   → API
+*/
+
+result.attendance.push(
+...(data.attendance||[])
+.filter(x=>x.date==date)
+);
+
+result.holiday.push(
+...(data.holiday||[])
+.filter(x=>x.date==date)
+);
+
+result.weeklyOff.push(
+...(data.weeklyOff||[])
+.filter(x=>x.date==date)
+);
+
+result.leave.push(
+...(data.leave||[])
+.filter(x=>x.date==date)
+);
+
+});
+
+return result;
 
 }
 
@@ -170,83 +294,13 @@ monthTitleEl.textContent=
 formatMonthTitle(currentMonth);
 
 const today=getToday();
-const todayMonth=getCurrentMonth();
 
 const cache=getCalendarCache();
-const cached=cache[currentMonth];
 
 /* =====================================
-   PAST MONTH
-   CACHE ONLY
-===================================== */
-
-if(currentMonth<todayMonth){
-
-if(cached){
-
-calendarData={
-attendance:cached.attendance||[],
-holiday:cached.holiday||[],
-weeklyOff:cached.weeklyOff||[],
-leave:cached.leave||[]
-};
-
-renderCalendar();
-
-return;
-
-}
-
-try{
-
-const r=await apiGet({
-
-action:"getCalendarData",
-
-month:currentMonth,
-
-employee_id:user.employee_id
-
-});
-
-if(!r.success)
-return;
-
-const data=
-r.data||{
-attendance:[],
-holiday:[],
-weeklyOff:[],
-leave:[]
-};
-
-const pastData=
-buildCacheData(data);
-
-cache[currentMonth]=pastData;
-
-saveCalendarCache(cache);
-
-calendarData=pastData;
-
-renderCalendar();
-
-}catch(e){
-
-console.error(
-"Calendar Past Load Error:",
-e
-);
-
-}
-
-return;
-
-}
-
-/* =====================================
-   CURRENT / FUTURE
    API
+   ALWAYS LOAD CURRENT MONTH
+   TODAY + FUTURE REQUIRE API
 ===================================== */
 
 try{
@@ -273,122 +327,31 @@ leave:[]
 };
 
 /* =====================================
-   CURRENT MONTH
+   PAST API DATA
+   → CACHE
 ===================================== */
 
-if(currentMonth===todayMonth){
-
-/*
-   API Past
-   → 更新 Past Cache
-
-   Today / Future
-   → API ONLY
-*/
-
-const apiPast=
-buildCacheData(apiData);
-
-const oldPast=
-cache[currentMonth]||{
-attendance:[],
-holiday:[],
-weeklyOff:[],
-leave:[]
-};
-
-/* =====================================
-   MERGE OLD CACHE + API PAST
-===================================== */
-
-const currentPast={
-
-attendance:mergePastList(
-oldPast.attendance,
-apiPast.attendance
-),
-
-holiday:mergePastList(
-oldPast.holiday,
-apiPast.holiday
-),
-
-weeklyOff:mergePastList(
-oldPast.weeklyOff,
-apiPast.weeklyOff
-),
-
-leave:mergePastList(
-oldPast.leave,
-apiPast.leave
-)
-
-};
-
-/* =====================================
-   SAVE PAST ONLY
-===================================== */
-
-cache[currentMonth]=currentPast;
+updateCalendarCache(
+cache,
+apiData,
+today
+);
 
 saveCalendarCache(cache);
 
 /* =====================================
    DISPLAY
-
    Past   → Cache
    Today  → API
    Future → API
 ===================================== */
 
-calendarData={
-
-attendance:[
-...(currentPast.attendance||[]),
-...(apiData.attendance||[])
-.filter(x=>x.date>=today)
-],
-
-holiday:[
-...(currentPast.holiday||[]),
-...(apiData.holiday||[])
-.filter(x=>x.date>=today)
-],
-
-weeklyOff:[
-...(currentPast.weeklyOff||[]),
-...(apiData.weeklyOff||[])
-.filter(x=>x.date>=today)
-],
-
-leave:[
-...(currentPast.leave||[]),
-...(apiData.leave||[])
-.filter(x=>x.date>=today)
-]
-
-};
-
-}else{
-
-/* =====================================
-   FUTURE MONTH
-   API ONLY
-===================================== */
-
-calendarData={
-
-attendance:apiData.attendance||[],
-
-holiday:apiData.holiday||[],
-
-weeklyOff:apiData.weeklyOff||[],
-
-leave:apiData.leave||[]
-
-};
-
-}
+calendarData=
+buildCalendarDisplay(
+cache,
+apiData,
+today
+);
 
 renderCalendar();
 
@@ -398,6 +361,59 @@ console.error(
 "Calendar Load Error:",
 e
 );
+
+/* =====================================
+   API FAIL
+   TRY CACHE FOR PAST
+===================================== */
+
+try{
+
+const cachedData={
+attendance:[],
+holiday:[],
+weeklyOff:[],
+leave:[]
+};
+
+Object.keys(cache).forEach(date=>{
+
+if(date<today){
+
+const x=cache[date];
+
+cachedData.attendance.push(
+...(x.attendance||[])
+);
+
+cachedData.holiday.push(
+...(x.holiday||[])
+);
+
+cachedData.weeklyOff.push(
+...(x.weeklyOff||[])
+);
+
+cachedData.leave.push(
+...(x.leave||[])
+);
+
+}
+
+});
+
+calendarData=cachedData;
+
+renderCalendar();
+
+}catch(err){
+
+console.error(
+"Calendar Cache Error:",
+err
+);
+
+}
 
 }
 
