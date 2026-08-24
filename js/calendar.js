@@ -1,71 +1,185 @@
 window.currentMonth=getCurrentMonth();
-window.calendarData={attendance:[],holiday:[],weeklyOff:[],leave:[]};
+
+window.calendarData={
+attendance:[],
+holiday:[],
+weeklyOff:[],
+leave:[]
+};
+
+const CALENDAR_CACHE_KEY="calendar_cache";
+
+/* =====================================
+   DATE
+===================================== */
 
 function getCurrentMonth(){
+
 return new Date()
-.toLocaleDateString("en-CA",{timeZone:"Asia/Kuala_Lumpur"})
+.toLocaleDateString(
+"en-CA",
+{
+timeZone:"Asia/Kuala_Lumpur"
+}
+)
 .slice(0,7);
+
 }
 
 function getToday(){
+
 return new Date()
-.toLocaleDateString("en-CA",{timeZone:"Asia/Kuala_Lumpur"});
+.toLocaleDateString(
+"en-CA",
+{
+timeZone:"Asia/Kuala_Lumpur"
 }
-
-function formatMonthTitle(month){
-
-const [y,m]=month.split("-");
-const date=new Date(y,Number(m)-1,1);
-
-return date.toLocaleDateString("en-US",{
-month:"long",
-year:"numeric"
-});
-
-}
-
-
-/* =====================================
-   LOAD CALENDAR
-   Past = Cache
-   Today/Future = API
-===================================== */
-
-async function loadCalendar(){
-
-const user=JSON.parse(
-localStorage.getItem("user")||"{}"
 );
 
-if(!user.employee_id)return;
-
-const monthTitleEl=document.getElementById("monthTitle");
-
-if(monthTitleEl)
-monthTitleEl.textContent=formatMonthTitle(currentMonth);
-
-const today=getToday();
-
-try{
+}
 
 /* =====================================
    CACHE
 ===================================== */
 
-let cache={};
+function getCalendarCache(){
 
 try{
-cache=JSON.parse(
-localStorage.getItem("calendar_cache")||"{}"
+
+return JSON.parse(
+localStorage.getItem(
+CALENDAR_CACHE_KEY
+)||"{}"
 );
+
 }catch(e){
-cache={};
+
+return {};
+
 }
 
+}
+
+function saveCalendarCache(cache){
+
+try{
+
+localStorage.setItem(
+CALENDAR_CACHE_KEY,
+JSON.stringify(cache)
+);
+
+}catch(e){}
+
+}
 
 /* =====================================
-   API
+   BUILD PAST CACHE
+   ONLY PAST DATA
 ===================================== */
+
+function buildCacheData(data){
+
+const today=getToday();
+
+return{
+
+attendance:(data.attendance||[])
+.filter(x=>x.date<today),
+
+holiday:(data.holiday||[])
+.filter(x=>x.date<today),
+
+weeklyOff:(data.weeklyOff||[])
+.filter(x=>x.date<today),
+
+leave:(data.leave||[])
+.filter(x=>x.date<today)
+
+};
+
+}
+
+/* =====================================
+   MONTH TITLE
+===================================== */
+
+function formatMonthTitle(month){
+
+const [y,m]=month.split("-");
+
+const date=
+new Date(
+y,
+Number(m)-1,
+1
+);
+
+return date.toLocaleDateString(
+"en-US",
+{
+month:"long",
+year:"numeric"
+}
+);
+
+}
+
+/* =====================================
+   LOAD CALENDAR
+===================================== */
+
+async function loadCalendar(){
+
+const user=
+JSON.parse(
+localStorage.getItem("user")||"{}"
+);
+
+if(!user.employee_id)
+return;
+
+const monthTitleEl=
+document.getElementById("monthTitle");
+
+if(monthTitleEl)
+monthTitleEl.textContent=
+formatMonthTitle(currentMonth);
+
+const today=getToday();
+const todayMonth=getCurrentMonth();
+
+const cache=getCalendarCache();
+const cached=cache[currentMonth];
+
+/* =====================================
+   PAST MONTH
+   CACHE ONLY
+===================================== */
+
+if(currentMonth<todayMonth){
+
+if(cached){
+
+calendarData={
+attendance:cached.attendance||[],
+holiday:cached.holiday||[],
+weeklyOff:cached.weeklyOff||[],
+leave:cached.leave||[]
+};
+
+renderCalendar();
+
+return;
+
+}
+
+/* =====================================
+   NO CACHE
+   API ONCE
+===================================== */
+
+try{
 
 const r=await apiGet({
 
@@ -77,133 +191,170 @@ employee_id:user.employee_id
 
 });
 
-const apiData=r.success
-?(r.data||{})
-:{};
+if(!r.success)
+return;
 
-
-/* =====================================
-   MERGE
-===================================== */
-
-const result={
+const data=
+r.data||{
 attendance:[],
 holiday:[],
 weeklyOff:[],
 leave:[]
 };
 
+const pastData=
+buildCacheData(data);
 
-/* =====================================
-   PAST DATA
-   Use cache
-===================================== */
+cache[currentMonth]=pastData;
 
-const cachedMonth=cache[currentMonth]||{};
+saveCalendarCache(cache);
 
-const addPastCached=(key)=>{
-
-(cachedMonth[key]||[]).forEach(x=>{
-
-if(x.date<today)
-result[key].push(x);
-
-});
-
-};
-
-
-/* =====================================
-   TODAY + FUTURE
-   Use API
-===================================== */
-
-const addApi=(key)=>{
-
-(apiData[key]||[]).forEach(x=>{
-
-if(x.date>=today)
-result[key].push(x);
-
-});
-
-};
-
-
-/* =====================================
-   BUILD
-===================================== */
-
-["attendance","holiday","weeklyOff","leave"]
-.forEach(key=>{
-
-addPastCached(key);
-addApi(key);
-
-});
-
-
-/* =====================================
-   TODAY/FUTURE API DATA
-   Also save only PAST into cache
-===================================== */
-
-const newCache={
-...cachedMonth
-};
-
-["attendance","holiday","weeklyOff","leave"]
-.forEach(key=>{
-
-newCache[key]=
-(apiData[key]||[])
-.filter(x=>x.date<today);
-
-});
-
-
-/* =====================================
-   SAVE CACHE
-===================================== */
-
-cache[currentMonth]=newCache;
-
-try{
-
-localStorage.setItem(
-"calendar_cache",
-JSON.stringify(cache)
-);
-
-}catch(e){
-
-console.warn(
-"calendar cache save failed",
-e
-);
-
-}
-
-
-/* =====================================
-   FINAL DATA
-===================================== */
-
-window.calendarData=result;
+calendarData=pastData;
 
 renderCalendar();
 
 }catch(e){
 
-console.error(e);
+console.error(
+"Calendar Past Load Error:",
+e
+);
 
 }
 
-}
+return;
 
+}
 
 /* =====================================
-   GOTO TODAY
+   CURRENT / FUTURE
+   API
+===================================== */
+
+try{
+
+const r=await apiGet({
+
+action:"getCalendarData",
+
+month:currentMonth,
+
+employee_id:user.employee_id
+
+});
+
+if(!r.success)
+return;
+
+const apiData=
+r.data||{
+attendance:[],
+holiday:[],
+weeklyOff:[],
+leave:[]
+};
+
+/* =====================================
+   CURRENT MONTH
+
+   Past   = Cache
+   Today  = API
+   Future = API
+===================================== */
+
+if(currentMonth===todayMonth){
+
+const past=
+cached||{
+attendance:[],
+holiday:[],
+weeklyOff:[],
+leave:[]
+};
+
+const pastData={
+attendance:(past.attendance||[])
+.filter(x=>x.date<today),
+
+holiday:(past.holiday||[])
+.filter(x=>x.date<today),
+
+weeklyOff:(past.weeklyOff||[])
+.filter(x=>x.date<today),
+
+leave:(past.leave||[])
+.filter(x=>x.date<today)
+};
+
+calendarData={
+
+attendance:[
+...pastData.attendance,
+...(apiData.attendance||[])
+],
+
+holiday:[
+...pastData.holiday,
+...(apiData.holiday||[])
+],
+
+weeklyOff:[
+...pastData.weeklyOff,
+...(apiData.weeklyOff||[])
+],
+
+leave:[
+...pastData.leave,
+...(apiData.leave||[])
+]
+
+};
+
+/* =====================================
+   SAVE PAST ONLY
+===================================== */
+
+cache[currentMonth]=
+buildCacheData(apiData);
+
+saveCalendarCache(cache);
+
+}else{
+
+/* =====================================
+   FUTURE MONTH
+   API ONLY
+===================================== */
+
+calendarData={
+
+attendance:apiData.attendance||[],
+
+holiday:apiData.holiday||[],
+
+weeklyOff:apiData.weeklyOff||[],
+
+leave:apiData.leave||[]
+
+};
+
+}
+
+renderCalendar();
+
+}catch(e){
+
+console.error(
+"Calendar Load Error:",
+e
+);
+
+}
+
+}
+
+/* =====================================
+   TODAY
 ===================================== */
 
 function gotoToday(){
@@ -219,52 +370,66 @@ loadCalendar();
 
 }
 
-
 /* =====================================
    DAY STATUS
 ===================================== */
 
 function getDayStatus(date){
 
-let x=calendarData.leave.find(a=>a.date==date);
+let x=
+calendarData.leave.find(
+a=>a.date==date
+);
 
-if(x)return{
+if(x)
+return{
 type:"Leave",
 label:"LV",
 cls:"leave-day",
 data:x
 };
 
+x=
+calendarData.attendance.find(
+a=>a.date==date
+);
 
-x=calendarData.attendance.find(a=>a.date==date);
-
-if(x)return{
+if(x)
+return{
 type:x.type,
 label:x.type=="Late"?"L":"P",
-cls:x.type=="Late"?"late-day":"present-day",
+cls:
+x.type=="Late"
+?"late-day"
+:"present-day",
 data:x
 };
 
+x=
+calendarData.holiday.find(
+a=>a.date==date
+);
 
-x=calendarData.holiday.find(a=>a.date==date);
-
-if(x)return{
+if(x)
+return{
 type:"Holiday",
 label:"H",
 cls:"holiday-day",
 data:x
 };
 
+x=
+calendarData.weeklyOff.find(
+a=>a.date==date
+);
 
-x=calendarData.weeklyOff.find(a=>a.date==date);
-
-if(x)return{
+if(x)
+return{
 type:"Weekly Off",
 label:"OFF",
 cls:"weekly-day",
 data:x
 };
-
 
 return{
 type:"",
@@ -275,41 +440,62 @@ data:null
 
 }
 
-
 /* =====================================
    RENDER
 ===================================== */
 
 function renderCalendar(){
 
-const grid=document.getElementById("calendarGrid");
+const grid=
+document.getElementById(
+"calendarGrid"
+);
 
-if(!grid)return;
+if(!grid)
+return;
 
 grid.innerHTML="";
 
-const [y,m]=currentMonth.split("-").map(Number);
+const [y,m]=
+currentMonth
+.split("-")
+.map(Number);
 
-const start=new Date(y,m-1,1).getDay();
+const start=
+new Date(
+y,
+m-1,
+1
+).getDay();
 
-const total=new Date(y,m,0).getDate();
+const total=
+new Date(
+y,
+m,
+0
+).getDate();
 
 const today=getToday();
 
+for(let i=0;i<start;i++){
 
-for(let i=0;i<start;i++)
-grid.innerHTML+="<div class='day empty'></div>";
+grid.innerHTML+=
+"<div class='day empty'></div>";
 
+}
 
 for(let i=1;i<=total;i++){
 
 const date=
-currentMonth+"-"+
+currentMonth+
+"-"+
 String(i).padStart(2,"0");
 
-const s=getDayStatus(date);
+const s=
+getDayStatus(date);
 
-const d=document.createElement("div");
+const d=
+document.createElement("div");
 
 d.className=
 "day "+
@@ -319,14 +505,15 @@ s.cls+
 d.innerHTML=
 `<div>${i}<small>${s.label}</small></div>`;
 
-d.onclick=()=>showDetail(date);
+d.onclick=()=>{
+showDetail(date);
+};
 
 grid.appendChild(d);
 
 }
 
 }
-
 
 /* =====================================
    DETAIL
@@ -336,44 +523,68 @@ function showDetail(date){
 
 window.selectedLeaveDate=date;
 
-const box=document.getElementById("detailBox");
+const box=
+document.getElementById(
+"detailBox"
+);
 
-const status=getDayStatus(date);
+const status=
+getDayStatus(date);
+
+if(!box)
+return;
 
 switch(status.type){
 
 case "Leave":
-box.innerHTML=renderLeaveDetail(
-date,status.data
+
+box.innerHTML=
+renderLeaveDetail(
+date,
+status.data
 );
+
 break;
 
 case "Holiday":
-box.innerHTML=renderHolidayDetail(
-date,status.data
+
+box.innerHTML=
+renderHolidayDetail(
+date,
+status.data
 );
+
 break;
 
 case "Weekly Off":
-box.innerHTML=renderWeeklyOffDetail(
-date,status.data
+
+box.innerHTML=
+renderWeeklyOffDetail(
+date,
+status.data
 );
+
 break;
 
 case "Present":
 case "Late":
-box.innerHTML=renderAttendanceDetail(
-date,status
+
+box.innerHTML=
+renderAttendanceDetail(
+date,
+status
 );
+
 break;
 
 default:
-box.innerHTML=renderEmptyDetail(date);
+
+box.innerHTML=
+renderEmptyDetail(date);
 
 }
 
 }
-
 
 /* =====================================
    ATTENDANCE DETAIL
@@ -387,15 +598,14 @@ return `
 <h3>${date}</h3>
 <p><b>Status :</b> ${s.type}</p>
 <hr>
-<p>Check In :${a.checkIn||"-"}</p>
-<p>Check Out :${a.checkOut||"-"}</p>
-<p>Work Hours :${a.workHours||0}</p>
-<p>Late :${a.late||0} min</p>
-<p>Early Leave :${a.early||0} min</p>
+<p>Check In : ${a.checkIn||"-"}</p>
+<p>Check Out : ${a.checkOut||"-"}</p>
+<p>Work Hours : ${a.workHours||0}</p>
+<p>Late : ${a.late||0} min</p>
+<p>Early Leave : ${a.early||0} min</p>
 `;
 
 }
-
 
 /* =====================================
    LEAVE DETAIL
@@ -407,10 +617,10 @@ return `
 <h3>${date}</h3>
 <p><b>Status :</b> Leave</p>
 <hr>
-<p>Leave Type :${l.leaveType||"-"}</p>
-<p>Days :${l.days||0}</p>
-<p>Half Day :${l.halfDay||"Full Day"}</p>
-<p>Reason :${l.reason||"-"}</p>
+<p>Leave Type : ${l.leaveType||"-"}</p>
+<p>Days : ${l.days||0}</p>
+<p>Half Day : ${l.halfDay||"Full Day"}</p>
+<p>Reason : ${l.reason||"-"}</p>
 <div class="leave-info">
 ✅ Leave already applied for this date.
 </div>
@@ -418,9 +628,8 @@ return `
 
 }
 
-
 /* =====================================
-   HOLIDAY DETAIL
+   HOLIDAY
 ===================================== */
 
 function renderHolidayDetail(date,h){
@@ -434,9 +643,8 @@ return `
 
 }
 
-
 /* =====================================
-   WEEKLY OFF DETAIL
+   WEEKLY OFF
 ===================================== */
 
 function renderWeeklyOffDetail(date,w){
@@ -450,9 +658,8 @@ return `
 
 }
 
-
 /* =====================================
-   EMPTY DETAIL
+   EMPTY
 ===================================== */
 
 function renderEmptyDetail(date){
@@ -460,6 +667,7 @@ function renderEmptyDetail(date){
 return `
 <h3>${date}</h3>
 <p>No Attendance Record</p>
+
 <button
 class="leave-btn"
 onclick="openLeaveApply()">
@@ -469,14 +677,14 @@ onclick="openLeaveApply()">
 
 }
 
-
 /* =====================================
    APPLY LEAVE
 ===================================== */
 
 function openLeaveApply(){
 
-const date=window.selectedLeaveDate||"";
+const date=
+window.selectedLeaveDate||"";
 
 sessionStorage.setItem(
 "leaveStartDate",
@@ -487,20 +695,25 @@ loadPage("leaveApply");
 
 }
 
-
 /* =====================================
-   PREVIOUS MONTH
+   PREVIOUS
 ===================================== */
 
 function prevMonth(){
 
-const d=new Date(currentMonth+"-01");
+const d=
+new Date(
+currentMonth+"-01"
+);
 
-d.setMonth(d.getMonth()-1);
+d.setMonth(
+d.getMonth()-1
+);
 
 currentMonth=
-d.toLocaleDateString("en-CA")
-.slice(0,7);
+d.toLocaleDateString(
+"en-CA"
+).slice(0,7);
 
 window.selectedLeaveDate="";
 
@@ -508,20 +721,25 @@ loadCalendar();
 
 }
 
-
 /* =====================================
-   NEXT MONTH
+   NEXT
 ===================================== */
 
 function nextMonth(){
 
-const d=new Date(currentMonth+"-01");
+const d=
+new Date(
+currentMonth+"-01"
+);
 
-d.setMonth(d.getMonth()+1);
+d.setMonth(
+d.getMonth()+1
+);
 
 currentMonth=
-d.toLocaleDateString("en-CA")
-.slice(0,7);
+d.toLocaleDateString(
+"en-CA"
+).slice(0,7);
 
 window.selectedLeaveDate="";
 
