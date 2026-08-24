@@ -82,7 +82,11 @@ alert("Photo Updated");
 }
 
 async function logout(){
-try{await apiPost({action:"logout"});}catch(e){}
-localStorage.clear();
+try{await apiPost({action:"logout"});
+}catch(e){}
+const keepKeys=["home_cache","calendar_cache"];
+Object.keys(localStorage).forEach(key=>{
+if(!keepKeys.includes(key)){localStorage.removeItem(key);}
+});
 window.location.href="index.html";
 }
