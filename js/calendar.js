@@ -10,7 +10,7 @@ leave:[]
 const CALENDAR_CACHE_KEY="calendar_cache";
 
 /* =====================================
-   MONTH
+   DATE
 ===================================== */
 
 function getCurrentMonth(){
@@ -74,8 +74,8 @@ JSON.stringify(cache)
 }
 
 /* =====================================
-   CACHE DATA
-   TODAY NEVER ENTERS CACHE
+   BUILD PAST CACHE
+   ONLY PAST DATA
 ===================================== */
 
 function buildCacheData(data){
@@ -85,138 +85,41 @@ const today=getToday();
 return{
 
 attendance:(data.attendance||[])
-.filter(x=>x.date!=today),
+.filter(x=>x.date<today),
 
-holiday:data.holiday||[],
+holiday:(data.holiday||[])
+.filter(x=>x.date<today),
 
-weeklyOff:data.weeklyOff||[],
+weeklyOff:(data.weeklyOff||[])
+.filter(x=>x.date<today),
 
 leave:(data.leave||[])
-.filter(x=>x.date!=today)
+.filter(x=>x.date<today)
 
 };
 
 }
 
 /* =====================================
-   MERGE
+   MERGE PAST CACHE
+   OLD CACHE + NEW API
 ===================================== */
 
-function mergeCalendarData(oldData,newData){
+function mergePastList(oldList,newList){
 
-const today=getToday();
+const map={};
 
-const result={
-attendance:[],
-holiday:[],
-weeklyOff:[],
-leave:[]
-};
+[
+...(oldList||[]),
+...(newList||[])
+].forEach(x=>{
 
-/* =====================================
-   ATTENDANCE
-   TODAY ALWAYS FROM API
-===================================== */
+if(x&&x.date)
+map[x.date]=x;
 
-const oldAttendance=
-(oldData.attendance||[])
-.filter(x=>x.date!=today);
-
-const newAttendance=
-(newData.attendance||[])
-.filter(x=>x.date!=today);
-
-const attendanceMap={};
-
-oldAttendance.forEach(x=>{
-attendanceMap[x.date]=x;
 });
 
-newAttendance.forEach(x=>{
-attendanceMap[x.date]=x;
-});
-
-result.attendance=
-Object.values(attendanceMap);
-
-/* =====================================
-   HOLIDAY
-===================================== */
-
-const holidayMap={};
-
-(oldData.holiday||[]).forEach(x=>{
-holidayMap[x.date]=x;
-});
-
-(newData.holiday||[]).forEach(x=>{
-holidayMap[x.date]=x;
-});
-
-result.holiday=
-Object.values(holidayMap);
-
-/* =====================================
-   WEEKLY OFF
-===================================== */
-
-const weeklyMap={};
-
-(oldData.weeklyOff||[]).forEach(x=>{
-weeklyMap[x.date]=x;
-});
-
-(newData.weeklyOff||[]).forEach(x=>{
-weeklyMap[x.date]=x;
-});
-
-result.weeklyOff=
-Object.values(weeklyMap);
-
-/* =====================================
-   LEAVE
-   TODAY NEVER CACHE
-===================================== */
-
-const leaveMap={};
-
-(oldData.leave||[])
-.filter(x=>x.date!=today)
-.forEach(x=>{
-leaveMap[x.date]=x;
-});
-
-(newData.leave||[])
-.filter(x=>x.date!=today)
-.forEach(x=>{
-leaveMap[x.date]=x;
-});
-
-result.leave=
-Object.values(leaveMap);
-
-/* =====================================
-   TODAY
-   ALWAYS KEEP API DATA IN MEMORY
-===================================== */
-
-const todayAttendance=
-(newData.attendance||[])
-.filter(x=>x.date==today);
-
-const todayLeave=
-(newData.leave||[])
-.filter(x=>x.date==today);
-
-result.attendance.push(
-...todayAttendance
-);
-
-result.leave.push(
-...todayLeave
-);
-
-return result;
+return Object.values(map);
 
 }
 
@@ -266,15 +169,18 @@ if(monthTitleEl)
 monthTitleEl.textContent=
 formatMonthTitle(currentMonth);
 
+const today=getToday();
+const todayMonth=getCurrentMonth();
+
+const cache=getCalendarCache();
+const cached=cache[currentMonth];
+
 /* =====================================
-   1. CACHE FIRST
+   PAST MONTH
+   CACHE ONLY
 ===================================== */
 
-const cache=
-getCalendarCache();
-
-const cached=
-cache[currentMonth];
+if(currentMonth<todayMonth){
 
 if(cached){
 
@@ -287,10 +193,60 @@ leave:cached.leave||[]
 
 renderCalendar();
 
+return;
+
+}
+
+try{
+
+const r=await apiGet({
+
+action:"getCalendarData",
+
+month:currentMonth,
+
+employee_id:user.employee_id
+
+});
+
+if(!r.success)
+return;
+
+const data=
+r.data||{
+attendance:[],
+holiday:[],
+weeklyOff:[],
+leave:[]
+};
+
+const pastData=
+buildCacheData(data);
+
+cache[currentMonth]=pastData;
+
+saveCalendarCache(cache);
+
+calendarData=pastData;
+
+renderCalendar();
+
+}catch(e){
+
+console.error(
+"Calendar Past Load Error:",
+e
+);
+
+}
+
+return;
+
 }
 
 /* =====================================
-   2. API UPDATE
+   CURRENT / FUTURE
+   API
 ===================================== */
 
 try{
@@ -317,31 +273,122 @@ leave:[]
 };
 
 /* =====================================
-   MERGE CACHE + API
+   CURRENT MONTH
 ===================================== */
 
-calendarData=
-mergeCalendarData(
-calendarData,
-apiData
-);
+if(currentMonth===todayMonth){
+
+/*
+   API Past
+   → 更新 Past Cache
+
+   Today / Future
+   → API ONLY
+*/
+
+const apiPast=
+buildCacheData(apiData);
+
+const oldPast=
+cache[currentMonth]||{
+attendance:[],
+holiday:[],
+weeklyOff:[],
+leave:[]
+};
 
 /* =====================================
-   SAVE ONLY NON-TODAY
+   MERGE OLD CACHE + API PAST
 ===================================== */
 
-const cacheData=
-buildCacheData(
-calendarData
-);
+const currentPast={
 
-cache[currentMonth]=cacheData;
+attendance:mergePastList(
+oldPast.attendance,
+apiPast.attendance
+),
+
+holiday:mergePastList(
+oldPast.holiday,
+apiPast.holiday
+),
+
+weeklyOff:mergePastList(
+oldPast.weeklyOff,
+apiPast.weeklyOff
+),
+
+leave:mergePastList(
+oldPast.leave,
+apiPast.leave
+)
+
+};
+
+/* =====================================
+   SAVE PAST ONLY
+===================================== */
+
+cache[currentMonth]=currentPast;
 
 saveCalendarCache(cache);
 
 /* =====================================
-   RENDER
+   DISPLAY
+
+   Past   → Cache
+   Today  → API
+   Future → API
 ===================================== */
+
+calendarData={
+
+attendance:[
+...(currentPast.attendance||[]),
+...(apiData.attendance||[])
+.filter(x=>x.date>=today)
+],
+
+holiday:[
+...(currentPast.holiday||[]),
+...(apiData.holiday||[])
+.filter(x=>x.date>=today)
+],
+
+weeklyOff:[
+...(currentPast.weeklyOff||[]),
+...(apiData.weeklyOff||[])
+.filter(x=>x.date>=today)
+],
+
+leave:[
+...(currentPast.leave||[]),
+...(apiData.leave||[])
+.filter(x=>x.date>=today)
+]
+
+};
+
+}else{
+
+/* =====================================
+   FUTURE MONTH
+   API ONLY
+===================================== */
+
+calendarData={
+
+attendance:apiData.attendance||[],
+
+holiday:apiData.holiday||[],
+
+weeklyOff:apiData.weeklyOff||[],
+
+leave:apiData.leave||[]
+
+};
+
+}
 
 renderCalendar();
 
